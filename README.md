@@ -77,8 +77,12 @@ Seekho is a generative AI-powered platform aimed at simplifying the course creat
 1. Provide the video content for the course.
 2. Use Seekho's one-click course generation feature to automatically create the course layout, notes, and quizzes.
 3. Customize the course content based on student difficulty levels.
-4. Enable multilingual support with the built-in translation and voiceover features.
+4. Enable multilingual support with built-in translation and voiceover features.
 5. Engage students through the Socratic method-based doubt solver.
+
+## Challenges
+
+1. Exact Lip synchronization between audio of varied languages.
 
 ## Contributing
 
