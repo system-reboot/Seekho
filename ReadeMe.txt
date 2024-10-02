@@ -1,0 +1,120 @@
+# Base Route
+@app.get("/")
+def read_root():
+    """
+    Returns a JSON response with the message "Hello: World".
+    """
+    return {"Hello": "World"}
+
+
+# Login Route
+@app.post("/login/")
+def login(username: str, password: str,user_type:str):
+    """
+    Authenticates the user with the provided username and password and user_type (between teacher and null).
+    Returns a JSON response with the message "Login successful" if the authentication is successful,
+    or "Invalid password" if the password is incorrect, or "User not found" if the user does not exist.
+    """
+
+
+# Signup Route
+@app.post("/signup/")
+def signup(username: str, password: str,user_type:str):
+    """
+    Creates a new user with the provided username and password and user_type (bewtween teacher and null).
+    Returns a JSON response with the message "User created successfully" if the user is created successfully,
+    or "Username already taken" if the username is already taken.
+    """
+
+
+# Generate Course Layout
+@app.post("/generate_layout/")
+def course_layout_generator(content, context, course_name, teacher_id):
+    """
+    Generates the course layout based on the provided content and context.
+    Inserts the generated layout into the MongoDB collection "course_layouts" under the teacher_id which the username of teacher.
+    """
+
+
+@app.post("/store_video/")
+def store_video(video_url: str, week: int, topic_name: str, course_name: str):
+    """
+    Stores the video information (video URL, week, topic name, and course name) in the MongoDB collection "videos".
+    Returns a JSON response with the message "Video stored successfully".
+    """
+
+
+@app.post("/generate_summary/")
+def weekwise_summary(course_name: str, week: int):
+    """
+    Generates the week-wise summary for the given course name and week.
+    Downloads audio files for each video, transcribes them, and generates lecture notes.
+    Inserts the generated summary into the MongoDB collection "summary".
+    """
+
+
+@app.post("/generate_quiz")
+def quiz_generator(course_name, week):
+    """
+    Generates a quiz for the given course name and week.
+    Retrieves the summary content from the MongoDB collection "summary".
+    Generates the quiz based on the summary content and inserts it into the MongoDB collection "quizzes".
+    Returns a JSON response with the message "Quiz saved successfully".
+    """
+
+
+@app.post("/translate/")
+def translate_text(course_name, week, level, target_language_code):
+    """
+    Translates the content for the given course name, week, and level to the target language specified by the target language code.
+    Retrieves the content from the MongoDB collection "summary".
+    Translates the content to the target language and returns the translated text.
+    """
+
+@app.get("/courses/")
+def get_courses_by_teacher(teacher_id):
+    """
+    Retrieves the list of available courses based on the teacher_id.
+    Returns a List of documents with the list of courses.
+    """
+
+@app.get("/fetch_summary")
+def fetch_summary(course_name,week):
+    """
+    Fetches the summary for the given course name and week.
+    Returns the summary content.
+    """
+
+@app.get("/fetch_quiz")
+def fetch_quiz(course_name,week):
+    """
+    Fetches the quiz for the given course name and week.
+    Returns the quiz content.
+    """
+
+@app.get("/fetch_video")
+def fetch_video(course_name,week,topic_name):
+    """
+    Fetches the video for the given course name, week, and topic name.
+    Returns the video content.
+    """
+
+@app.post("/solve_doubt")
+def solve_doubt(user_context,model_context, prompt):
+    """
+    Solves the doubt based on the user context, model context, and prompt.
+    Returns the response to the doubt.
+    Initial User Context and Model COntext is ""
+    Continuing Conversation we have these two contexts same as the last results's data
+    """
+
+#To Run teh project run "uvicorn main:app --reload" in the terminal.
+
+#Sarvam API requests are limited so use routes generate_summary and translate only when needed.
+
+#ChangeLogs
+
+-> Added Fetch Route for summary
+-> Added Fetch Route for quiz
+-> Added Fetch Route for video
+-> Added Solve Doubt Route
