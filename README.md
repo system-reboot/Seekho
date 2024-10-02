@@ -36,6 +36,19 @@ Seekho is a generative AI-powered platform aimed at simplifying the course creat
 - **Database**: MongoDB.
 - **Additional**: Google Search Engine for downloading images used in the content.
 
+![image](https://github.com/user-attachments/assets/85a8855e-69d1-4b69-a484-bf84869c439c)
+![image](https://github.com/user-attachments/assets/a98a72ec-ec48-468d-b20b-ea403129b2e3)
+![image](https://github.com/user-attachments/assets/58251501-4628-44e4-868e-966e0841cccf)
+![image](https://github.com/user-attachments/assets/a99a2af0-cc76-43a7-8e34-66f2b8bd50d1)
+![image](https://github.com/user-attachments/assets/c9e2342f-ac8f-4d87-b394-e53149727729)
+![image](https://github.com/user-attachments/assets/333ab724-447a-47ca-a41b-0ae6658c900d)
+![image](https://github.com/user-attachments/assets/d52c0d40-5077-4fb2-a6c3-b4d3e155f6e3)
+![image](https://github.com/user-attachments/assets/92ba4e68-addd-47f6-aa7f-b69621cd5342)
+![image](https://github.com/user-attachments/assets/48ce3f9c-0b84-4240-8bc3-a4afba0e75ef)
+![image](https://github.com/user-attachments/assets/9f1f6da7-684e-4b1f-adb8-f5f820195edb)
+![image](https://github.com/user-attachments/assets/0522fd4e-8666-41d3-a4bb-ade11aed901d)
+
+
 ## Installation
 
 1. Clone the repository:
