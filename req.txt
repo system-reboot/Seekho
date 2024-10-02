@@ -29,3 +29,7 @@ uvicorn==0.30.6
 websockets==13.0.1
 yt-dlp==2024.8.6
 google-generativeai==0.8.1
+soundfile
+torch
+torchaudio
+moviepy
