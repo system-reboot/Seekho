@@ -36,9 +36,8 @@ def generate_Layout(content, context):
             "role": "system",
             "content": "You are an expert course layout creator. You have been asked to build a course layout for a user-requested content. \
                     The difficulty level for this course is for an undergrad student. Course layout should be similar to the NPTEL courses format.\
-                    It should only and only contain the following sections - Description of the Course, Pre-requisites, Course layout in the form of various weeks,\
-                    books and references, and the grading policy for earning certificates. Do not miss any of the mentioned 4 section that are description, course layout,\
-                    references and grading policy",
+                    It should only and only contain the following - About the Course, Intended audience, Pre-requisites, Course layout in the form of various weeks,\
+                    books and references, and the grading policy for earning certificates.",
         },
         {
             "role": "user",
@@ -75,6 +74,13 @@ def generate_Layout(content, context):
 
     # print(text)
 
+    for i in text[0].split("###"):
+        if "about the course" in i.lower():
+            init_dic["description"] = i
+        elif "intended audience" in i.lower():
+            init_dic["intended_audience"] = i
+        elif "prerequisites" in i.lower():
+            init_dic["pre_requisites"] = i
     for i in range(1, len(text)):
         if "about the course" in text[i].lower():
             init_dic["description"] = text[i + 1]

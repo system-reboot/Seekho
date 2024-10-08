@@ -9,24 +9,25 @@ from moviepy.editor import concatenate_audioclips, AudioFileClip
 from pydub.playback import play
 import shutil
 import base64
-
+from silero_vad import load_silero_vad, read_audio, get_speech_timestamps
+model = load_silero_vad()
 load_dotenv()
 
 # solving https error in torch hub less than 1.9
-torch.hub._validate_not_a_forked_repo=lambda a,b,c: True
+# torch.hub._validate_not_a_forked_repo=lambda a,b,c: True
 
-# load the silerio vad model
-model, utils = torch.hub.load(repo_or_dir='snakers4/silero-vad',
-                              model='silero_vad',
-                              force_reload=True,
-                              onnx=False) 
+# # load the silerio vad model
+# model, utils = torch.hub.load(repo_or_dir='snakers4/silero-vad',
+#                               model='silero_vad',
+#                               force_reload=False,
+#                               onnx=False) 
 
-# get the helper functions out of util
-(get_speech_timestamps,
- save_audio,
- read_audio,
- VADIterator,
- collect_chunks) = utils
+# # get the helper functions out of util
+# (get_speech_timestamps,
+#  save_audio,
+#  read_audio,
+#  VADIterator,
+#  collect_chunks) = utils
 
 def silence_adder( audio_in_file,audio_out_file,silence_time):
     # for adding silence at front

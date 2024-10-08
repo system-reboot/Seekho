@@ -54,7 +54,7 @@ def quiz_generator(summary_content):
         "response_mime_type": "text/plain",
     }
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-pro",
+        model_name="gemini-1.5-flash",
         generation_config=generation_config,
         safety_settings=safety_settings,
         system_instruction=messages[0]["content"],
