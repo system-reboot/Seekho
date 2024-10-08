@@ -133,6 +133,7 @@ async def store_videos(course_name: str, week: int, topic_names: str, video_urls
 
     return {"message": "Videos stored successfully"}
 
+
 @app.get("/get_image/")
 async def get_image(image_name: str):
     image_path = os.path.join("./images", image_name)
@@ -141,6 +142,8 @@ async def get_image(image_name: str):
         return FileResponse(image_path)
     else:
         return {"message": "Image not found"}
+
+
 @app.post("/generate_summary/")
 async def weekwise_summary(course_name: str, week: int):
     db = db_client["genai"]
@@ -278,11 +281,11 @@ async def quiz_generators(course_name, week):
 
 
 @app.post("/translate/")
-def translate_text(course_name, week, level, target_language_code):
+async def translate_text(course_name, week, level, target_language_code):
     db = db_client["genai"]
     collection = db["summary"]
 
-    summary = collection.find_one({"course_name": course_name})
+    summary = await collection.find_one({"course_name": course_name})
     if summary:
         for week_summary in summary["summary"]:
             if str(week) in week_summary:
@@ -294,10 +297,10 @@ def translate_text(course_name, week, level, target_language_code):
 
 
 @app.get("/fetch_summary")
-def fetch_summary(course_name, week):
+async def fetch_summary(course_name, week):
     db = db_client["genai"]
     collection = db["summary"]
-    summary = collection.find_one({"course_name": course_name})
+    summary = await collection.find_one({"course_name": course_name})
     if summary:
         for week_summary in summary["summary"]:
             if str(week) in week_summary:
@@ -320,10 +323,10 @@ def fetch_quiz(course_name, week):
 
 
 @app.get("/fetch_video")
-def fetch_video(course_name, week, topic_name):
+async def fetch_video(course_name, week, topic_name):
     db = db_client["genai"]
     collection = db["videos"]
-    video = collection.find_one(
+    video = await collection.find_one(
         {"course_name": course_name, "week": int(week), "topic_name": topic_name}
     )
     video["_id"] = str(video["_id"])
