@@ -109,7 +109,7 @@ async def get_courses_by_teacher(teacher_id):
     return courses
 
 
-@app.post("/store_videos/")
+@app.post("/store_video/")
 async def store_videos(
     course_name: str,
     week: int,
