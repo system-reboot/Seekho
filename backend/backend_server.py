@@ -3,8 +3,6 @@
 # Imports
 import uvicorn
 import os
-import re
-import pymongo
 import bcrypt
 import json
 import yt_dlp as youtube_dl
@@ -20,6 +18,7 @@ from bson import json_util
 from audio_language_translator import translating_audio_language_and_making_chunks
 from imagedownloader import get_images_and_descriptions
 from fastapi.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
 
 # App
 app = FastAPI()
@@ -37,7 +36,7 @@ db_user = os.getenv("DB_USER")
 db_password = os.getenv("DB_PASSWORD")
 mongodb = os.getenv("DB")
 ffmpeg_path = os.getenv("FFMPEG_PATH")
-
+db_client = AsyncIOMotorClient(mongodb.replace("<username>", db_user).replace("<password>", db_password))
 
 # Routes
 # Base Route
@@ -48,18 +47,11 @@ def read_root():
 
 # Login Route
 @app.post("/login/")
-def login(username: str, password: str, user_type: str):
-    # Connect to MongoDB
-    db_client = pymongo.MongoClient(
-        mongodb.replace("<username>", db_user).replace("<password>", db_password)
-    )
+async def login(username: str, password: str, user_type: str):
     db = db_client["genai"]
-    if user_type == "teacher":
-        collection = db["teachers"]
-    else:
-        collection = db["users"]
+    collection = db["teachers"] if user_type == "teacher" else db["users"]
     # Check if user exists
-    user = collection.find_one({"username": username})
+    user = await collection.find_one({"username": username})
     # Check if password is correct
     if user:
         if bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
@@ -72,18 +64,11 @@ def login(username: str, password: str, user_type: str):
 
 # Signup Route
 @app.post("/signup/")
-def signup(username: str, password: str, user_type: str):
-    # Connect to MongoDB
-    db_client = pymongo.MongoClient(
-        mongodb.replace("<username>", db_user).replace("<password>", db_password)
-    )
+async def signup(username: str, password: str, user_type: str):
     db = db_client["genai"]
-    if user_type == "teacher":
-        collection = db["teachers"]
-    else:
-        collection = db["users"]
+    collection = db["teachers"] if user_type == "teacher" else db["users"]
     # Check if user already exists
-    existing_user = collection.find_one({"username": username})
+    existing_user = await collection.find_one({"username": username}, {"_id": 1})
     # Create new user
     if existing_user:
         return {"message": "Username already taken"}
@@ -91,7 +76,7 @@ def signup(username: str, password: str, user_type: str):
     hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
     new_user = {"username": username, "password": hashed_password.decode("utf-8")}
     # Insert new user into MongoDB
-    collection.insert_one(new_user)
+    await collection.insert_one(new_user)
     return {"message": "User created successfully"}
 
 
@@ -101,23 +86,15 @@ def course_layout_generator(content, context, course_name, teacher_id):
     # Generate course layout
     final_dic = generate_Layout(content, context)
 
-    # Connect to MongoDB
-    db_client = pymongo.MongoClient(
-        mongodb.replace("<username>", db_user).replace("<password>", db_password)
-    )
-    db = db_client["genai"]
-    collection = db["course_layouts"]
-    collection.insert_one({course_name: final_dic, "teacher_id": teacher_id})
+    # db = db_client["genai"]
+    # collection = db["course_layouts"]
+    # collection.insert_one({course_name: final_dic, "teacher_id": teacher_id})
 
-    return
+    return final_dic
 
 
 @app.get("/courses/")
 def get_courses_by_teacher(teacher_id):
-    # Connect to MongoDB
-    db_client = pymongo.MongoClient(
-        mongodb.replace("<username>", db_user).replace("<password>", db_password)
-    )
     db = db_client["genai"]
     collection = db["course_layouts"]
     courses = collection.find({"teacher_id": teacher_id})
@@ -127,10 +104,6 @@ def get_courses_by_teacher(teacher_id):
 
 @app.post("/store_video/")
 def store_video(video_url: str, week: int, topic_name: str, course_name: str):
-    # Connect to MongoDB
-    db_client = pymongo.MongoClient(
-        mongodb.replace("<username>", db_user).replace("<password>", db_password)
-    )
     db = db_client["genai"]
     collection = db["videos"]
     video = {
@@ -146,10 +119,6 @@ def store_video(video_url: str, week: int, topic_name: str, course_name: str):
 
 @app.post("/generate_summary/")
 def weekwise_summary(course_name: str, week: int):
-    # Connect to MongoDB
-    db_client = pymongo.MongoClient(
-        mongodb.replace("<username>", db_user).replace("<password>", db_password)
-    )
     db = db_client["genai"]
     collection = db["videos"]
 
@@ -216,10 +185,6 @@ def weekwise_summary(course_name: str, week: int):
 def quiz_generators(course_name, week):
 
     summary_content = ""
-    # Connect to MongoDB
-    db_client = pymongo.MongoClient(
-        mongodb.replace("<username>", db_user).replace("<password>", db_password)
-    )
     db = db_client["genai"]
     collection = db["summary"]
     summary = collection.find_one({"course_name": course_name})
@@ -232,10 +197,6 @@ def quiz_generators(course_name, week):
 
     init_dic = quiz_generator(summary_content)
 
-    # Connect to MongoDB
-    db_client = pymongo.MongoClient(
-        mongodb.replace("<username>", db_user).replace("<password>", db_password)
-    )
     db = db_client["genai"]
     collection = db["quizzes"]
     existing_quiz = collection.find_one({"course_name": course_name})
@@ -257,10 +218,6 @@ def quiz_generators(course_name, week):
 
 @app.post("/translate/")
 def translate_text(course_name, week, level, target_language_code):
-    # Connect to MongoDB
-    db_client = pymongo.MongoClient(
-        mongodb.replace("<username>", db_user).replace("<password>", db_password)
-    )
     db = db_client["genai"]
     collection = db["summary"]
 
@@ -277,10 +234,6 @@ def translate_text(course_name, week, level, target_language_code):
 
 @app.get("/fetch_summary")
 def fetch_summary(course_name, week):
-    # Connect to MongoDB
-    db_client = pymongo.MongoClient(
-        mongodb.replace("<username>", db_user).replace("<password>", db_password)
-    )
     db = db_client["genai"]
     collection = db["summary"]
     summary = collection.find_one({"course_name": course_name})
@@ -294,10 +247,6 @@ def fetch_summary(course_name, week):
 
 @app.get("/fetch_quiz")
 def fetch_quiz(course_name, week):
-    # Connect to MongoDB
-    db_client = pymongo.MongoClient(
-        mongodb.replace("<username>", db_user).replace("<password>", db_password)
-    )
     db = db_client["genai"]
     collection = db["quizzes"]
     quiz = collection.find_one({"course_name": course_name})
@@ -311,10 +260,6 @@ def fetch_quiz(course_name, week):
 
 @app.get("/fetch_video")
 def fetch_video(course_name, week, topic_name):
-    # Connect to MongoDB
-    db_client = pymongo.MongoClient(
-        mongodb.replace("<username>", db_user).replace("<password>", db_password)
-    )
     db = db_client["genai"]
     collection = db["videos"]
     video = collection.find_one(
@@ -331,10 +276,6 @@ def solve_doubt(user_context, model_context, prompt):
 
 @app.post("/lang_change/")
 def change_language(course_name: str, week: int, topic_name: str, target_language: str):
-    # Connect to MongoDB
-    db_client = pymongo.MongoClient(
-        mongodb.replace("<username>", db_user).replace("<password>", db_password)
-    )
     db = db_client["genai"]
     collection = db["videos"]
 
