@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert, ImageBackground } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert, ImageBackground, ActivityIndicator } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
-import { router } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useTeacherContext } from '@/context/TeacherId';
 import { Switch } from 'react-native-paper';
 
@@ -16,6 +16,7 @@ function LoginScreen() {
     const [username, setName] = useState();
     const [password, setPassword] = useState();
     const [isSwitchOn, setIsSwitchOn] = React.useState(true);
+    const [loading, setLoading] = useState(false);
 
     const { setTeacherData } = useTeacherContext()
     const onToggleSwitch = () => setIsSwitchOn(isSwitchOn);
@@ -25,6 +26,7 @@ function LoginScreen() {
     const url = `http://34.45.174.70:80/login?username=${username}&password=${password}&user_type=${userType}`;
 
     const handleLogin = async () => {
+        setLoading(true)
         if (!username || !password) {
             Alert.alert('Error', 'Please fill out all fields');
             return;
@@ -49,7 +51,6 @@ function LoginScreen() {
                 if (data.message === 'Login successful') {
                     Alert.alert('Success', data.message);
                     router.push("/(tabs)/(user)/")
-
                 } else {
                     Alert.alert('Error', data.message);
                 }
@@ -60,17 +61,34 @@ function LoginScreen() {
         } catch (error) {
             Alert.alert('Error', 'Failed to connect to the server.');
             console.error('Error:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleGuest = () => {
-        router.push("/(tabs)/(user)/")
+    if (loading) {
+        return (
+            <View style={styles.container}>
+                <View style={styles.loaderContainer}>
+                    <Stack.Screen options={{
+                        headerTitle: "loading...",
+                        headerShown:true,
+                    }} />
+                    <ActivityIndicator size="large" color="white" />
+                </View>
+            </View>
+        );
     }
+
 
     return (
 
         <View style={styles.container}>
             <View style={styles.outerContainer}>
+                <Stack.Screen options={{
+                    headerTitle: "Seekho",
+                    headerShown:true,
+                }} />
                 <Text style={styles.header}>Login</Text>
                 <TextInput style={styles.input} placeholder="Name" onChangeText={(newText: any) => setName(newText)}
                 />
@@ -94,6 +112,8 @@ function SignupScreen({ navigation }: { navigation: any }) {
     const [username, setName] = useState();
     const [password, setPassword] = useState();
     const [isSwitchOn, setIsSwitchOn] = React.useState(true);
+    const [loading, setLoading] = useState(false);
+
 
     const onToggleSwitch = () => setIsSwitchOn(isSwitchOn);
 
@@ -103,6 +123,7 @@ function SignupScreen({ navigation }: { navigation: any }) {
 
 
     const handleSignup = async () => {
+        setLoading(true);
         if (!username || !password) {
             Alert.alert('Error', 'Please fill out all fields');
             return;
@@ -132,12 +153,33 @@ function SignupScreen({ navigation }: { navigation: any }) {
         } catch (error) {
             Alert.alert('Error', 'Failed to connect to the server.');
             console.error('Error:', error);
+        }finally{
+            setLoading(false);
         }
     };
+
+    
+    if (loading) {
+        return (
+            <View style={styles.container}>
+                <View style={styles.loaderContainer}>
+                    <Stack.Screen options={{
+                        headerTitle: "loading...",
+                        headerShown:true,
+                    }} />
+                    <ActivityIndicator size="large" color="white" />
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
             <View style={styles.outerContainer}>
+                <Stack.Screen options={{
+                    headerTitle: "Seekho",
+                    headerShown:true
+                }} />
                 <Text style={styles.header}>Signup</Text>
                 <TextInput style={styles.input} placeholder="Name" onChangeText={(newText: any) => setName(newText)}
                 />
@@ -241,5 +283,10 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         gap: 10,
         padding: 10
-    }
+    },
+    loaderContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 });

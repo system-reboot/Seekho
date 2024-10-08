@@ -46,25 +46,14 @@ export default function RootLayout() {
         })()
     }, [])
 
-    if (loading) {
-        return (
-            <View style={styles.loaderContainer}>
-                <Stack.Screen options={{
-                    headerTitle: "loading...",
-                }} />
-
-                <ActivityIndicator size="large" color="#c4210b" />
-            </View>
-        );
-    }
-
-
+    
+    
     const renderCourseCard = ({ item }: { item: any }) => {
 
         const keys = Object.keys(item)
-
+        
         console.log(keys)
-
+        
         return (<View style={styles.card}>
             <TouchableOpacity
                 onPress={() => handlePress(item)}
@@ -75,10 +64,24 @@ export default function RootLayout() {
         </View>)
     };
 
+    if (loading) {
+        return (
+            <View style={styles.loaderContainer}>
+                <Stack.Screen options={{
+                    headerTitle: "loading...",
+                    headerShown:true,
+                }} />
+
+                <ActivityIndicator size="large" color="#c4210b" />
+            </View>
+        );
+    }
+    
     return (
         <View style={styles.container}>
             <Stack.Screen options={{
-                headerTitle: `created course by ${teacherName} `,
+                headerTitle: `Course Developed by  ${teacherName} `,
+                headerShown:true,
             }} />
             <FlatList
                 data={courseList}

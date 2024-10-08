@@ -79,24 +79,42 @@ export default function CourseDetails() {
         })()
     }, [teacherName])
 
-    // if (loading) {
-    //     return (
-    //         <View style={styles.loaderContainer}>
-    //             <Stack.Screen options={{
-    //                 headerTitle: "loading...",
-    //             }} />
-    //             <ActivityIndicator size="large" color="#c4210b" />
-    //         </View>
-    //     );
-    // }
-
     function Description() {
+
+        if (loading) {
+            return (
+                <View style={styles.loaderContainer}>
+                    <Stack.Screen options={{
+                        headerTitle: "loading...",
+                        headerStyle: {
+                            backgroundColor: '#a81400',
+                        },
+                        headerTintColor: '#fff',
+                        headerTitleStyle: {
+                            fontWeight: 'bold',
+                        },
+                        headerShown: true
+                    }} />
+                    <ActivityIndicator size="large" color="#c4210b" />
+                </View>
+            );
+        }
+
+
         return (
             <>
                 <View style={styles.container}>
-                    {/* <Stack.Screen options={{
-                    headerTitle: header || "course details",
-                }} /> */}
+                    <Stack.Screen options={{
+                        headerTitle: header + "Course",
+                        headerStyle: {
+                            backgroundColor: '#a81400',
+                        },
+                        headerTintColor: '#fff',
+                        headerTitleStyle: {
+                            fontWeight: 'bold',
+                        },
+                        headerShown: true,
+                    }} />
                     <ScrollView style={styles.scrollContainer}>
                         <View style={styles.section}>
                             <Text style={styles.header}>Description</Text>
@@ -163,7 +181,17 @@ export default function CourseDetails() {
     function Weeks() {
         return (
             <View style={styles.container}>
-
+                <Stack.Screen options={{
+                    headerTitle: header + "Week Wise",
+                    headerStyle: {
+                        backgroundColor: '#a81400',
+                    },
+                    headerTintColor: '#fff',
+                    headerTitleStyle: {
+                        fontWeight: 'bold',
+                    },
+                    headerShown: true,
+                }} />
                 <ScrollView>
                     {
                         week.map((weekData: any, index: any) => (
@@ -197,20 +225,13 @@ export default function CourseDetails() {
                         return <Ionicons name={iconName} size={size} color={color} />;
                     },
                     tabBarActiveTintColor: "#a81400",
-                    headerShown: true,
-                    headerTitle: "Graph Theory", // Set your custom title here
-                    headerTitleStyle:{
-                        color:"white"
-                    },
-                    headerStyle: {
-                        backgroundColor: '#a81400'
-                    },
+                    headerShown: false,
                 })}
             >
 
                 <Tab.Screen name="overview" component={Description} />
-                <Tab.Screen name="week" component={Weeks} />
-            </Tab.Navigator>
+                {!loading && <Tab.Screen name="week" component={Weeks} />}            
+                </Tab.Navigator>
         </NavigationContainer>
     );
 }

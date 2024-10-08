@@ -1,12 +1,10 @@
 import React from 'react';
 import { Stack } from 'expo-router';
-import { useTeacherContext } from '@/context/TeacherId';
 
 type Nameprop = { name: string };
 
 export default function RootStack({ name }: Nameprop) {
 
-    const {teacherName} = useTeacherContext();
 
     return (
         <Stack
@@ -21,7 +19,7 @@ export default function RootStack({ name }: Nameprop) {
                 headerShown:false
             }}
         >
-            <Stack.Screen name="index" />
+            <Stack.Screen name="[name]" />
         </Stack>
     );
 }

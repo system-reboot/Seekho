@@ -1,7 +1,7 @@
 import { useTeacherContext } from '@/context/TeacherId';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Button, Alert, Modal, ScrollView,ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Button, Alert, Modal, ScrollView, ActivityIndicator } from 'react-native';
 import { Stack } from 'expo-router';
 
 
@@ -13,9 +13,10 @@ type WeekCardProp = {
 const WeekCard = ({ week, subTopic }: WeekCardProp) => {
     const [isOpen, setIsOpen] = useState(false);
     const dataArray = subTopic ? subTopic.split("*") : [];
-    const [videoUrls, setVideoUrls] = useState<any>(dataArray.filter((item) => (item!== ""  && ''))); // Store video URLs
+    const [videoUrls, setVideoUrls] = useState<any>(dataArray.filter((item) => (item !== "" && ''))); // Store video URLs
     const [loading, setLoading] = useState(false);
     const { courseName } = useTeacherContext();
+    const [status,setStatus ] = useState("")
 
 
     const toggleDropdown = () => {
@@ -45,14 +46,15 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
                 });
 
                 const data = await response.json();
-                
-                if(data === "Summary not found for the given course and week")
-                {
+
+                console.log(data)
+
+                if (data === "Summary not found for the given course and week" || !data) {
                     setIsOpen(!isOpen);
                 }
-                else{
+                else {
                     router.push(`/subtopic/${week}`)
-                }   
+                }
 
                 if (!response.ok) {
                     Alert.alert('Error', 'Something went wrong, please try again later.');
@@ -75,40 +77,50 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
         setVideoUrls(updatedUrls);
     };
 
-    const allVideosStored = videoUrls.every((url:any) => url !== '');
+    const allVideosStored = videoUrls.every((url: any) => url !== '');
 
     const storeVideos = async () => {
         setLoading(true);
-        for (let i = 0; i < dataArray.length; i++) {
-            const videoUrl:string = videoUrls[i];
-            if (videoUrl !== undefined ) {
-                await storeVideo(dataArray[i], videoUrl);
-            }
-        }
-        setLoading(false);
-        setIsOpen(false); 
-        handleTrigger(); // Automatically run the handleTrigger function after storing videos
+        setStatus("storing video....")
+        await storeVideo(dataArray);
+   // Automatically run the handleTrigger function after storing videos
     };
 
-    const storeVideo = async (subTopic: string, videoUrl: string) => {
+    const storeVideo = async (dataArray: string[]) => {
         const match = week.match(/Week (\d+)/i);
         let weekNumber = match ? parseInt(match[1]) : null;
 
-        const teacherName = courseName?.trim(); // Use your appropriate variable for teacher's name
-        const url = `http://34.45.174.70:80/store_video/?video_url=${videoUrl}&week=${weekNumber}&topic_name=${subTopic.trim()}&course_name=${teacherName}`;
-    
+        const cName = courseName?.trim(); // Use your appropriate variable for teacher's name
+        let url = `http://34.45.174.70:80/store_video?week=${weekNumber}&course_name=${cName}`;
+
+        dataArray.forEach((topic, index) => {
+            if (topic.trim() === "") {
+                return null; // Return null instead of undefined
+            }
+            const videoUrl = videoUrls[index];
+            if (videoUrl !== undefined && videoUrl !== null && videoUrl.trim() !== "") {
+                url += `&topic_names=${topic.trim()}&video_urls=${videoUrl}`;
+            }
+        });
+
+        console.log("url check",url)
+
+
         try {
             const response = await fetch(url, {
-                method: 'POST', 
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
 
             const data = await response.json();
-
             if (response.ok) {
+                setStatus("generating summary...")
                 Alert.alert('Success', `Video for ${subTopic} stored successfully.`);
+                setLoading(false);
+                setIsOpen(false);
+                handleTrigger();
             } else {
                 Alert.alert('Error', data.message || 'Something went wrong, please try again later.');
             }
@@ -134,7 +146,7 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
         try {
             // Constructing the URL with query parameters
             const response = await fetch(url, {
-                method: 'POST', 
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -145,7 +157,7 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
             console.log(data)
 
             if (response.ok) {
-                // Handle successful response here if needed
+                setStatus("generating quiz...")
                 handleQuizGeneration();
             } else {
                 Alert.alert('Error', 'Something went wrong, please try again later.');
@@ -162,32 +174,32 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
         // Extract the week number from the week string
         const match = week.match(/Week (\d+)/i);
         let weekNumber;
-    
+
         if (match) {
             weekNumber = parseInt(match[1]);
         } else {
             weekNumber = null; // Handle the case where there's no match
         }
-    
+
         // Construct the URL with the necessary query parameters
 
-        console.log(courseName,weekNumber)
+        console.log(courseName, weekNumber)
         const url = `http://34.45.174.70:80/generate_quiz/?course_name=${courseName.trim()}&week=${weekNumber}`;
-    
+
         setLoading(true); // Set loading state to true
         try {
             // Send a POST request to the API
             const response = await fetch(url, {
-                method: 'POST', 
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
-    
+
             const data = await response.json(); // Parse the JSON response
-    
+
             if (response.ok) {
-                // Handle successful response here if needed
+                setStatus("generated quiz")
                 Alert.alert('Success', 'Quiz saved successfully.');
             } else {
                 Alert.alert('Error', data.message || 'Something went wrong, please try again later.');
@@ -199,13 +211,14 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
             setLoading(false); // Set loading state to false
         }
     };
-    
+
 
     if (loading) {
         return (
             <View style={styles.loaderContainer}>
+                <Text>{status}</Text>
                 <ActivityIndicator size="large" color="#c4210b" />
-            </View> 
+            </View>
         );
     }
 
@@ -213,7 +226,7 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
     return (
         <View style={styles.card}>
             <TouchableOpacity onPress={toggleDropdown} style={styles.header}>
-                <Text style={styles.weekText}>{week}</Text>
+                  <Text style={styles.weekText}>{week}</Text>
             </TouchableOpacity>
             <Modal visible={isOpen} animationType="slide">
                 <View style={styles.modalContainer}>
@@ -236,13 +249,13 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
                             );
                         })}
                     </ScrollView>
-                    <Button 
-                        title="Store Videos" 
-                        color={"#c4210b"} 
-                        onPress={storeVideos} 
+                    <Button
+                        title="Store Videos"
+                        color={"#c4210b"}
+                        onPress={storeVideos}
                         disabled={!allVideosStored} // Disable if loading or if not all URLs are valid
                     />
-                    <br/>
+                    <br />
                     <Button title="Close" color="#c4210b" onPress={() => setIsOpen(false)} />
                 </View>
             </Modal>
@@ -296,9 +309,10 @@ const styles = StyleSheet.create({
     },
     loaderContainer: {
         flex: 1,
+        gap:10,
         justifyContent: 'center',
         alignItems: 'center',
-        marginVertical:20,
+        marginVertical: 20,
     },
 });
 

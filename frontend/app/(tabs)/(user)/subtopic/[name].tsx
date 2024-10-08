@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, Modal, TextInput, TouchableOpacity, Button } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, Modal, TextInput, TouchableOpacity, Button, ActivityIndicator } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useTeacherContext } from '@/context/TeacherId';
 import { Picker } from '@react-native-picker/picker';
@@ -8,12 +8,14 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 // @ts-expect-error
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import App from './Videoplayer';
+// import VideoScreen from './Videoplayer';
+
 // Load the module
 
-import { Video, ResizeMode } from 'expo-av';
 
 
-const WeekNotes = () => {
+const WeekNotes = React.memo(() => {
     const { name } = useLocalSearchParams();
     const { courseName } = useTeacherContext();
     const [loading, setLoading] = useState(false);
@@ -143,9 +145,9 @@ const WeekNotes = () => {
         <View style={styles.container}>
             <Stack.Screen options={{
                 headerTitle: Array.isArray(name) ? name[0] : name || 'Course Details',
+                headerShown: true,
             }} />
 
-            {/* Dropdown for selecting user level */}
             <Picker
                 selectedValue={selectedLevel}
                 onValueChange={(itemValue) => {
@@ -177,10 +179,10 @@ const WeekNotes = () => {
             </ScrollView>
         </View>
     );
-};
+})
 
 
-const sub = () => {
+const sub = React.memo(() => {
     const { name } = useLocalSearchParams();
     const week = Array.isArray(name) ? name[0] : name;
     const [loading, setLoading] = useState(true);
@@ -189,9 +191,8 @@ const sub = () => {
     const [selectedSubtopic, setSelectedSubtopic] = useState<any>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const { courseName, teacherName } = useTeacherContext();
-    const [status, setStatus] = useState<any>({});
-    const video = useRef<any>(null);
-
+    const [selectedLevel, setSelectedLevel] = useState()
+    const ref = useRef(null);
 
 
 
@@ -253,7 +254,7 @@ const sub = () => {
         console.log(courseName, week, subtopic)
 
         const url = `http://34.45.174.70:80/fetch_video?course_name=${courseName}&week=${weekNumber}&topic_name=${subtopic.trim()}`;
-
+        setLoading(true)
         try {
             const response = await fetch(url, {
                 method: 'GET',
@@ -269,6 +270,7 @@ const sub = () => {
 
             const videoData = await response.json();
 
+
             const extractYouTubeVideoID = (url) => {
                 const urlObj = new URL(url);
                 return urlObj.searchParams.get('v');
@@ -279,9 +281,11 @@ const sub = () => {
             setIsModalVisible(true); // Show the modal after fetching video details
         } catch (error) {
             console.error('Error fetching video:', error);
-        }
+        } finally {
 
-        setIsModalVisible(true); // Show the modal
+            setLoading(false)
+            setIsModalVisible(true); // Show the modal
+        }
     };
 
     const closeModal = () => {
@@ -289,15 +293,28 @@ const sub = () => {
     };
 
 
-    const [selectedLevel, setSelectedLevel] = useState()
+
+    if (loading) {
+        return (
+            <View style={styles.loaderContainer}>
+                <Stack.Screen options={{
+                    headerTitle: "loading...",
+                    headerShown: true,
+                }} />
+
+                <ActivityIndicator size="large" color="#c4210b" />
+            </View>
+        );
+    }
 
 
-
-
-
+    console.log(videos)
     return (
         <View style={styles.container}>
-            {/* Subtopic List */}
+            <Stack.Screen options={{
+                headerTitle: "subtopics",
+                headerShown: true,
+            }} />
             <ScrollView style={styles.scrollView}>
                 {subtopics.filter((subtopic: any) => subtopic.trim() !== '').map((subtopic: any, index: any) => (
                     <TouchableOpacity key={index} onPress={() => handleSubtopicPress(subtopic)}>
@@ -332,19 +349,18 @@ const sub = () => {
                         </Picker>
 
                         {/* Replace with actual video URL if needed */}
-                        <View style={styles.video}>
-                            <iframe width="300" height="320" src={`https://www.youtube.com/embed/${videos}`} title="AP Dhillon All Hit Songs | Audio Jukebox 2022 | AP Dhillon All Love Songs | @MasterpieceAMan" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-                        </View>
+                        <App videoId={videos} />
+                        <br/>
                         <Button title="Close" onPress={closeModal} color={"#a81400"} />
                     </View>
                 </View>
             </Modal>
         </View>
     );
-}
+})
 
 
-const quiz = () => {
+const quiz = React.memo(() => {
     const { name } = useLocalSearchParams();
 
     const week = Array.isArray(name) ? name[0] : name;
@@ -396,28 +412,45 @@ const quiz = () => {
         handleFetchQuiz();
     }, [])
 
-
     if (loading) {
-        return (<Text>isLoading...</Text>)
+        return (
+            <View style={styles.loaderContainer}>
+                <Stack.Screen options={{
+                    headerTitle: "loading...",
+                    headerShown: true,
+                }} />
+
+                <ActivityIndicator size="large" color="#c4210b" />
+            </View>
+        );
     }
 
-    return (<ScrollView style={styles.container}>
-        {quizData?.questions && Object.keys(quizData.questions).map((key) => {
-            return (
-                <View key={key} style={styles.questionContainer}>
-                    <Text style={styles.questionText}>{`${key}. ${quizData.questions[key]}`}</Text>
-                    {/* {quizData.options[key].map((option: any, index: any) => (
+    return (
+        <View>
+            <Stack.Screen options={{
+                headerTitle: "quiz",
+                headerShown: true,
+            }} />
+            <ScrollView style={styles.container}>
+
+                {quizData?.questions && Object.keys(quizData.questions).map((key) => {
+                    return (
+                        <View key={key} style={styles.questionContainer}>
+                            <Text style={styles.questionText}>{`${key}. ${quizData.questions[key]}`}</Text>
+                            {/* {quizData.options[key].map((option: any, index: any) => (
                         <Text key={index} style={styles.optionText}>{option}</Text>
                     ))} */}
-                    {/* <Text style={styles.answerText}>{`Correct Answer: ${quizData.answers[key]}`}</Text> */}
-                </View>
-            );
-        })}
-    </ScrollView>)
-}
+                            {/* <Text style={styles.answerText}>{`Correct Answer: ${quizData.answers[key]}`}</Text> */}
+                        </View>
+                    );
+                })}
+            </ScrollView>
+        </View>
+    )
+})
 
 
-const DoubtSolver = () => {
+const DoubtSolver = React.memo(() => {
     const [chats, setChats] = useState([
         { type: 'sender', message: 'Hello, I have a doubt!' },
         { type: 'receiver', message: 'Sure, what is your doubt?' }
@@ -425,10 +458,10 @@ const DoubtSolver = () => {
     const [newMessage, setNewMessage] = useState('');
     const [userC, setuserC] = useState("")
     const [modalC, setModalC] = useState("")
-    const [loading,setLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
 
 
-    const handleFetchQuiz = async () => {
+    const SolveDoubt = async () => {
 
         const url = `http://34.45.174.70:80/solve_doubt?user_context=${userC.trim()}&model_context=${modalC}&prompt=${newMessage}`;
 
@@ -448,7 +481,7 @@ const DoubtSolver = () => {
             if (response.ok) {
                 setuserC(data.user_context);
                 setModalC(data.model_context);
-                setChats((prev)=>[...prev, { type: 'receiver', message: data.model_response }]);
+                setChats((prev) => [...prev, { type: 'receiver', message: data.model_response }]);
             } else {
                 Alert.alert('Error', data.message || 'Something went wrong, please try again later.');
             }
@@ -458,22 +491,25 @@ const DoubtSolver = () => {
         } finally {
             setLoading(false);
         }
-    };
-
+    }
 
 
 
 
     const sendMessage = () => {
         if (newMessage.trim()) {
-            setChats((prev)=>[...prev, { type: 'sender', message: newMessage }]);
-            handleFetchQuiz();
+            setChats((prev) => [...prev, { type: 'sender', message: newMessage }]);
+            SolveDoubt();
             setNewMessage('');
         }
     };
 
     return (
         <View style={styles.container}>
+            <Stack.Screen options={{
+                headerTitle: "doubt solver",
+                headerShown: true,
+            }} />
             <ScrollView style={styles.chatContainer}>
                 {chats.map((chat, index) => (
                     <View
@@ -495,11 +531,11 @@ const DoubtSolver = () => {
                     onChangeText={setNewMessage}
                     placeholder="Type your message..."
                 />
-                <Button title="Send" onPress={sendMessage} color="#a81400"/>
+                <Button title="Send" onPress={sendMessage} color="#a81400" />
             </View>
         </View>
     );
-};
+})
 
 
 const Subtopic = () => {
@@ -524,13 +560,7 @@ const Subtopic = () => {
                         return <Ionicons name={iconName} size={size} color={color} />;
                     },
                     tabBarActiveTintColor: "#a81400",
-                    headerShown: true,
-                    headerTitleStyle: {
-                        color: "white"
-                    },
-                    headerStyle: {
-                        backgroundColor: '#a81400'
-                    },
+                    headerShown: false,
                 })}
             >
 
@@ -628,7 +658,8 @@ const styles = StyleSheet.create({
 
     video: {
         alignSelf: 'center',
-        margin: 20
+        margin: 20,
+        padding: 20
     },
     buttons: {
         flexDirection: 'row',
@@ -687,6 +718,11 @@ const styles = StyleSheet.create({
         borderColor: '#ccc',
         borderRadius: 5,
         marginRight: 10,
+    },
+    loaderContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });
 

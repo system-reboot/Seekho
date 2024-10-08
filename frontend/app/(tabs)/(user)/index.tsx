@@ -5,7 +5,7 @@ import { ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 // @ts-expect-error
 import Icon from 'react-native-vector-icons/Ionicons';
-import { router } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useTeacherContext } from '@/context/TeacherId';
 
 export default function RootLayout() {
@@ -32,13 +32,10 @@ export default function RootLayout() {
             });
 
             const data = await response.json();
+
             if (response.ok) {
-                if (data && data.message === 'Course Generated Successfully') {
                     Alert.alert('Success', data.message);
-                    router.push("/Created Courses")
-                } else {
-                    Alert.alert('Error', data.message);
-                }
+                    router.push("/details/Created Courses")
             } else {
                 Alert.alert('Error', 'Something went wrong, please try again later.');
             }
@@ -56,8 +53,12 @@ export default function RootLayout() {
 
     return (
         <View style={styles.container}>
+            <Stack.Screen options={{
+                headerTitle: `Welcome ${teacherName} `,
+                headerShown:true,
+            }} />
             <TouchableOpacity style={styles.button} onPress={() => {
-                router.push("/Created Courses")
+                router.push("/details/Created Courses")
             }}>
                 <Icon name="book-outline" size={24} color="#fff" />
                 <Text style={styles.buttonText}>All My Courses</Text>

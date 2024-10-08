@@ -19,6 +19,7 @@
     "@react-native-picker/picker": "^2.8.1",
     "@react-navigation/native": "^6.0.2",
     "expo": "~51.0.28",
+    "expo-av": "~14.0.7",
     "expo-constants": "~16.0.2",
     "expo-font": "~12.0.9",
     "expo-linking": "~6.3.1",
@@ -26,6 +27,7 @@
     "expo-splash-screen": "~0.27.5",
     "expo-status-bar": "~1.12.1",
     "expo-system-ui": "~3.0.7",
+    "expo-video": "^1.2.7",
     "expo-web-browser": "~13.0.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -39,10 +41,13 @@
     "react-native-screens": "3.31.1",
     "react-native-tab-view": "^3.5.2",
     "react-native-vector-icons": "^10.2.0",
+    "react-native-video": "^6.6.4",
     "react-native-video-player": "^0.14.0",
     "react-native-web": "~0.19.10",
-    "react-native-webview": "13.8.6",
-    "expo-av": "~14.0.7"
+    "react-native-web-webview": "^1.0.2",
+    "react-native-webview": "^13.8.6",
+    "react-native-youtube": "^2.0.2",
+    "react-native-youtube-iframe": "^2.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
