@@ -133,7 +133,6 @@ async def store_videos(course_name: str, week: int, topic_names: str, video_urls
 
     return {"message": "Videos stored successfully"}
 
-
 @app.get("/get_image/")
 async def get_image(image_name: str):
     image_path = os.path.join("./images", image_name)
@@ -142,8 +141,6 @@ async def get_image(image_name: str):
         return FileResponse(image_path)
     else:
         return {"message": "Image not found"}
-
-
 @app.post("/generate_summary/")
 async def weekwise_summary(course_name: str, week: int):
     db = db_client["genai"]
