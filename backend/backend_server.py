@@ -8,7 +8,6 @@ import json
 import asyncio
 import concurrent.futures
 import yt_dlp as youtube_dl
-from fastapi import FastAPI
 from dotenv import load_dotenv
 from transcriptor import transcriptor
 from notes_generator import lecture_notes_generator
@@ -22,6 +21,8 @@ from imagedownloader import get_images_and_descriptions
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi.responses import FileResponse
+from fastapi import FastAPI, Query, HTTPException
+from typing import List
 
 # App
 app = FastAPI()
@@ -109,29 +110,39 @@ async def get_courses_by_teacher(teacher_id):
 
 
 @app.post("/store_videos/")
-async def store_videos(course_name: str, week: int, topic_names: str, video_urls: str):
-    topic_names = topic_names.split("$")
-    video_urls = video_urls.split("$")
-
+async def store_videos(
+    course_name: str,
+    week: int,
+    topic_names: List[str] = Query(...),  # Expect multiple topic_names
+    video_urls: List[str] = Query(...),  # Expect multiple video_urls
+):
+    # Ensure the number of topics matches the number of URLs
     if len(topic_names) != len(video_urls):
-        return {"message": "The number of subtopics and video URLs must be the same"}
+        raise HTTPException(
+            status_code=400,
+            detail="The number of topics and video URLs must be the same",
+        )
 
+    # Access the database
     db = db_client["genai"]
     collection = db["videos"]
 
+    # Create the list of video data to be inserted
     video_data_list = [
         {
             "video_url": video_url,
             "week": week,
-            "topic_name": subtopic,
+            "topic_name": topic_name,
             "course_name": course_name,
         }
-        for subtopic, video_url in zip(topic_names, video_urls)
+        for topic_name, video_url in zip(topic_names, video_urls)
     ]
 
+    # Insert the video data asynchronously
     await collection.insert_many(video_data_list)
 
     return {"message": "Videos stored successfully"}
+
 
 @app.get("/get_image/")
 async def get_image(image_name: str):
@@ -141,6 +152,8 @@ async def get_image(image_name: str):
         return FileResponse(image_path)
     else:
         return {"message": "Image not found"}
+
+
 @app.post("/generate_summary/")
 async def weekwise_summary(course_name: str, week: int):
     db = db_client["genai"]
