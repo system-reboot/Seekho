@@ -76,18 +76,18 @@ def generate_Layout(content, context):
 
     for i in text[0].split("###"):
         if "about the course" in i.lower():
-            init_dic["description"] = i
+            init_dic["description"] = i.replace("About the Course", "").strip()
         elif "intended audience" in i.lower():
-            init_dic["intended_audience"] = i
+            init_dic["intended_audience"] = i.replace("Intended audience", "").strip()
         elif "prerequisites" in i.lower():
-            init_dic["pre_requisites"] = i
+            init_dic["pre_requisites"] = i.replace("Prerequisites", "").strip()
     for i in range(1, len(text)):
         if "about the course" in text[i].lower():
-            init_dic["description"] = text[i + 1]
+            init_dic["description"] = text[i + 1].replace("About the Course", "").strip()
         elif "intended audience" in text[i].lower():
-            init_dic["intended_audience"] = text[i + 1]
+            init_dic["intended_audience"] = text[i + 1].replace("Intended audience", "").strip()
         elif "prerequisites" in text[i].lower():
-            init_dic["pre_requisites"] = text[i + 1]
+            init_dic["pre_requisites"] = text[i + 1].replace("Prerequisites", "").strip()
         elif bool(re.search(pattern, text[i])):
             content_layout[text[i]] = text[i + 1]
             init_dic["content_layout"] = content_layout

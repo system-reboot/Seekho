@@ -36,7 +36,10 @@ db_user = os.getenv("DB_USER")
 db_password = os.getenv("DB_PASSWORD")
 mongodb = os.getenv("DB")
 ffmpeg_path = os.getenv("FFMPEG_PATH")
-db_client = AsyncIOMotorClient(mongodb.replace("<username>", db_user).replace("<password>", db_password))
+db_client = AsyncIOMotorClient(
+    mongodb.replace("<username>", db_user).replace("<password>", db_password)
+)
+
 
 # Routes
 # Base Route
@@ -82,39 +85,50 @@ async def signup(username: str, password: str, user_type: str):
 
 # Generate Course Layout
 @app.post("/generate_layout/")
-def course_layout_generator(content, context, course_name, teacher_id):
+async def course_layout_generator(content, context, course_name, teacher_id):
     # Generate course layout
     final_dic = generate_Layout(content, context)
 
-    # db = db_client["genai"]
-    # collection = db["course_layouts"]
-    # collection.insert_one({course_name: final_dic, "teacher_id": teacher_id})
+    db = db_client["genai"]
+    collection = db["course_layouts"]
+    await collection.insert_one({course_name: final_dic, "teacher_id": teacher_id})
 
-    return final_dic
+    return 200
 
 
 @app.get("/courses/")
-def get_courses_by_teacher(teacher_id):
+async def get_courses_by_teacher(teacher_id):
     db = db_client["genai"]
     collection = db["course_layouts"]
-    courses = collection.find({"teacher_id": teacher_id})
+    courses = await collection.find({"teacher_id": teacher_id}).to_list()
     courses = json.loads(json_util.dumps(courses))
     return courses
 
 
-@app.post("/store_video/")
-def store_video(video_url: str, week: int, topic_name: str, course_name: str):
+@app.post("/store_videos/")
+async def store_videos(course_name: str, week: int, topic_names: str, video_urls: str):
+    topic_names = topic_names.split("$")
+    video_urls = video_urls.split("$")
+
+    if len(topic_names) != len(video_urls):
+        return {"message": "The number of subtopics and video URLs must be the same"}
+
     db = db_client["genai"]
     collection = db["videos"]
-    video = {
-        "video_url": video_url,
-        "week": week,
-        "topic_name": topic_name,
-        "course_name": course_name,
-    }
-    collection.insert_one(video)
 
-    return {"message": "Video stored successfully"}
+    video_data_list = [
+        {
+            "video_url": video_url,
+            "week": week,
+            "topic_name": subtopic,
+            "course_name": course_name,
+        }
+        for subtopic, video_url in zip(topic_names, video_urls)
+    ]
+
+    await collection.insert_many(video_data_list)
+
+    return {"message": "Videos stored successfully"}
 
 
 @app.post("/generate_summary/")
