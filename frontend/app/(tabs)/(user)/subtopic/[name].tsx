@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Alert, Modal, TextInput, TouchableO
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useTeacherContext } from '@/context/TeacherId';
 import { Picker } from '@react-native-picker/picker';
-import Markdown from 'react-native-markdown-display'; // Import the markdown display library
+import { MarkdownView } from 'react-native-markdown-view'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 // @ts-expect-error
@@ -173,9 +173,9 @@ const WeekNotes = React.memo(() => {
 
             {/* Scrollable content based on selected level */}
             <ScrollView style={styles.scrollView}>
-                <Markdown>
+                <MarkdownView>
                     {!loading ? data && data[selectedLevel] : "loading..."}
-                </Markdown>
+                </MarkdownView>
             </ScrollView>
         </View>
     );
@@ -350,7 +350,7 @@ const sub = React.memo(() => {
 
                         {/* Replace with actual video URL if needed */}
                         <App videoId={videos} />
-                        <br/>
+                        <br />
                         <Button title="Close" onPress={closeModal} color={"#a81400"} />
                     </View>
                 </View>
