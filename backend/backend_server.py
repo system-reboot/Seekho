@@ -239,16 +239,16 @@ async def weekwise_summary(course_name: str, week: int):
         if os.path.exists(audio):
             os.remove(audio)
 
-    return
+    return 200
 
 
 @app.post("/generate_quiz")
-def quiz_generators(course_name, week):
+async def quiz_generators(course_name, week):
 
     summary_content = ""
     db = db_client["genai"]
     collection = db["summary"]
-    summary = collection.find_one({"course_name": course_name})
+    summary = await collection.find_one({"course_name": course_name})
     if summary:
         for week_summary in summary["summary"]:
             if str(week) in week_summary:
@@ -260,19 +260,19 @@ def quiz_generators(course_name, week):
 
     db = db_client["genai"]
     collection = db["quizzes"]
-    existing_quiz = collection.find_one({"course_name": course_name})
+    existing_quiz = await collection.find_one({"course_name": course_name})
 
     if existing_quiz:
         # Update existing quiz with new week:quiz
         existing_quiz["quizzes"].append({str(week): str(init_dic)})
-        collection.update_one(
+        await collection.update_one(
             {"course_name": course_name},
             {"$set": {"quizzes": existing_quiz["quizzes"]}},
         )
     else:
         # Create new entry for course_name in the quizzes table
         new_quiz = {"course_name": course_name, "quizzes": [{str(week): str(init_dic)}]}
-        collection.insert_one(new_quiz)
+        await collection.insert_one(new_quiz)
 
     return {"message": "Quiz saved successfully"}
 

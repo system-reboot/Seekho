@@ -79,11 +79,12 @@ def quiz_generator(summary_content):
 
     # print(text)
 
+
     for i in range(0, len(text)):
         if bool(re.search(number_followed_by_dot_pattern, text[i])):
             temp = text[i].split("\n")
             # print(temp,'-------')
-            question[ctr] = temp[0].split(". ")[1]
+            question[ctr] = temp[0].split(". ")[1].replace("*", "")
             options[ctr] = [x.replace("*", "") for x in temp[1:5]]
             if len(temp) == 6:
                 answer[ctr] = temp[5].replace("*", "").split(":")[1]
