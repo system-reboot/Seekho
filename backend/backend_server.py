@@ -307,10 +307,10 @@ async def fetch_summary(course_name, week):
 
 
 @app.get("/fetch_quiz")
-def fetch_quiz(course_name, week):
+async def fetch_quiz(course_name, week):
     db = db_client["genai"]
     collection = db["quizzes"]
-    quiz = collection.find_one({"course_name": course_name})
+    quiz = await collection.find_one({"course_name": course_name})
     if quiz:
         for week_quiz in quiz["quizzes"]:
             if str(week) in week_quiz:
