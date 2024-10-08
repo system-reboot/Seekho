@@ -5,6 +5,8 @@ import uvicorn
 import os
 import bcrypt
 import json
+import asyncio
+import concurrent.futures
 import yt_dlp as youtube_dl
 from fastapi import FastAPI
 from dotenv import load_dotenv
@@ -19,6 +21,7 @@ from audio_language_translator import translating_audio_language_and_making_chun
 from imagedownloader import get_images_and_descriptions
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+from fastapi.responses import FileResponse
 
 # App
 app = FastAPI()
@@ -130,18 +133,27 @@ async def store_videos(course_name: str, week: int, topic_names: str, video_urls
 
     return {"message": "Videos stored successfully"}
 
-
+@app.get("/get_image/")
+async def get_image(image_name: str):
+    image_path = os.path.join("./images", image_name)
+    print(image_path)
+    if os.path.exists(image_path):
+        return FileResponse(image_path)
+    else:
+        return {"message": "Image not found"}
 @app.post("/generate_summary/")
-def weekwise_summary(course_name: str, week: int):
+async def weekwise_summary(course_name: str, week: int):
     db = db_client["genai"]
     collection = db["videos"]
 
     # Get all videos for the given course_name and week
-    videos = collection.find({"course_name": course_name, "week": week})
+    videos = await collection.find({"course_name": course_name, "week": week}).to_list(
+        length=None
+    )
 
     audio_files = []
-    # Download audio files for each video
-    for video in videos:
+
+    def download_audio(video):
         video_url = video["video_url"]
         topic_name = video["topic_name"]
         ydl_opts = {
@@ -154,18 +166,53 @@ def weekwise_summary(course_name: str, week: int):
                 }
             ],
             "outtmpl": f"temp_audio/{topic_name}.%(ext)s",  # Save audio files with topic_name
-            "verbose": True,  # Enable verbose output
+            "verbose": False,  # Enable verbose output
             "ffmpeg_location": f"{ffmpeg_path}",  # Specify the location of FFmpeg executable
         }
+
+        # Run youtube_dl to download the audio
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download([video_url])
-            audio_files.append([topic_name, f"temp_audio/{topic_name}.mp3"])
 
-    # Transcribe audio files
-    transcripts = ""
-    for topic, audio in audio_files:
-        text = topic + " : " + transcriptor(audio)
-        transcripts = transcripts + ", " + text
+        audio_file = f"temp_audio/{topic_name}.mp3"
+        return topic_name, audio_file
+
+    # Download audio files concurrently
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = {executor.submit(download_audio, video): video for video in videos}
+        results = []
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                results.append(future.result())
+            except Exception as e:
+                print(f"Error processing video {futures[future]['video_url']}: {e}")
+
+    # Ensure results are in the correct order
+    results.sort(key=lambda x: x[0])  # Sort by topic_name
+
+    # Transcribe audio files concurrently while preserving order
+    async def transcribe_audio(topic_name, audio_file):
+        transcript = transcriptor(audio_file)
+        return topic_name, transcript
+
+    # Use asyncio to run transcriptions concurrently
+    transcripts = []
+    tasks = [
+        transcribe_audio(topic_name, audio_file) for topic_name, audio_file in results
+    ]
+    transcriptions = await asyncio.gather(*tasks)
+
+    # Ensure results are in the correct order
+    transcriptions.sort(key=lambda x: x[0])  # Sort by topic_name
+
+    # Format transcripts
+    transcripts = [
+        f"{topic_name} : {transcript}" for topic_name, transcript in transcriptions
+    ]
+    transcripts = ", ".join(transcripts)
+
+    # Collect audio files for cleanup
+    audio_files = [(topic, audio) for topic, audio in results]
 
     # Generate lecture notes
     summary = lecture_notes_generator(course_name, week, transcripts)
@@ -173,19 +220,19 @@ def weekwise_summary(course_name: str, week: int):
 
     # Check if course_name already exists in the summary table
     collection = db["summary"]
-    existing_summary = collection.find_one({"course_name": course_name})
+    existing_summary = await collection.find_one({"course_name": course_name})
 
     if existing_summary:
         # Update existing summary with new week:summary
         existing_summary["summary"].append({str(week): summary})
-        collection.update_one(
+        await collection.update_one(
             {"course_name": course_name},
             {"$set": {"summary": existing_summary["summary"]}},
         )
     else:
         # Create new entry for course_name in the summary table
         new_summary = {"course_name": course_name, "summary": [{str(week): summary}]}
-        collection.insert_one(new_summary)
+        await collection.insert_one(new_summary)
 
     # Delete the saved audio files
     for _, audio in audio_files:
