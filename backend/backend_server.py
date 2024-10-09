@@ -9,6 +9,7 @@ import asyncio
 import concurrent.futures
 import yt_dlp as youtube_dl
 import re
+import mimetypes
 from dotenv import load_dotenv
 from transcriptor import transcriptor
 from notes_generator import lecture_notes_generator
@@ -21,8 +22,8 @@ from audio_language_translator import translating_audio_language_and_making_chun
 from imagedownloader import get_images_and_descriptions
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-from fastapi.responses import FileResponse
-from fastapi import FastAPI, Query, HTTPException
+from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import FastAPI, Query, HTTPException, Request
 from typing import List
 
 # App
@@ -170,7 +171,7 @@ async def weekwise_summary(course_name: str, week: int):
     def download_audio(video):
         video_url = video["video_url"]
         topic_name = video["topic_name"]
-        topic_name = re.sub(r'[\/:*?"<>|]', '_', topic_name)
+        topic_name = re.sub(r'[\/:*?"<>|]', "_", topic_name)
         ydl_opts = {
             "format": "bestaudio/best",
             "postprocessors": [
@@ -295,8 +296,23 @@ async def quiz_generators(course_name, week):
 @app.post("/translate/")
 async def translate_text(course_name, week, level, target_language_code):
     db = db_client["genai"]
-    collection = db["summary"]
+    translated_collection = db["translated"]
 
+    # Check if the translation already exists
+    existing_translation = await translated_collection.find_one(
+        {
+            "course_name": course_name,
+            "week": week,
+            "level": level,
+            "target_language_code": target_language_code,
+        }
+    )
+
+    if existing_translation:
+        return existing_translation["translated_content"]
+
+    collection = db["summary"]
+    # Fetch the summary content
     summary = await collection.find_one({"course_name": course_name})
     if summary:
         for week_summary in summary["summary"]:
@@ -304,8 +320,20 @@ async def translate_text(course_name, week, level, target_language_code):
                 content = week_summary[str(week)][level]
 
     # Translate content to target language
-    translated = translate(content, target_language_code)
-    return translated
+    translated_content = translate(content, target_language_code)
+
+    # Store the translated content in the database
+    await translated_collection.insert_one(
+        {
+            "course_name": course_name,
+            "week": week,
+            "level": level,
+            "target_language_code": target_language_code,
+            "translated_content": translated_content,
+        }
+    )
+
+    return translated_content
 
 
 @app.get("/fetch_summary")
@@ -395,6 +423,58 @@ def change_language(course_name: str, week: int, topic_name: str, target_languag
         "message": "Audio translated successfully",
         "audio_file": translated_audio_path,
     }
+
+
+@app.get("/get_video/")
+async def get_video(video_name: str, request: Request):
+    video_path = os.path.join("./videos", video_name)
+
+    # Check if the video file exists
+    if not os.path.exists(video_path):
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    # Get the MIME type of the video (e.g., video/mp4)
+    content_type, _ = mimetypes.guess_type(video_path)
+    if content_type is None:
+        content_type = "application/octet-stream"  # Default if unknown type
+
+    file_size = os.path.getsize(video_path)
+    range_header = request.headers.get("range")
+    start = 0
+    end = file_size - 1
+    headers = {}
+
+    if range_header:
+        # Handle range requests
+        range_value = range_header.strip().lower().replace("bytes=", "")
+        start_str, end_str = range_value.split("-")
+        start = int(start_str) if start_str else 0
+        end = int(end_str) if end_str else file_size - 1
+
+        headers["Content-Range"] = f"bytes {start}-{end}/{file_size}"
+        headers["Accept-Ranges"] = "bytes"
+        headers["Content-Length"] = str(end - start + 1)
+
+        status_code = 206  # Partial content status code
+    else:
+        headers["Content-Length"] = str(file_size)
+        status_code = 200  # Normal status code
+
+    def iterfile(path, start_pos=0, end_pos=None):
+        with open(path, "rb") as f:
+            f.seek(start_pos)
+            while chunk := f.read(1024 * 1024):  # Read in 1MB chunks
+                yield chunk
+                if end_pos is not None and f.tell() > end_pos:
+                    break
+
+    # Streaming response with the correct content type for video
+    return StreamingResponse(
+        iterfile(video_path, start_pos=start, end_pos=end),
+        headers=headers,
+        media_type=content_type,  # Set the correct MIME type
+        status_code=status_code
+    )
 
 
 if __name__ == "__main__":
