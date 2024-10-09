@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-url="http://127.0.0.1:8080/get_image/?image_name="
+url="http://34.45.174.70:80/get_image/?image_name="
 generation_config = {
     "temperature": 1,
     "top_p": 0.95,

@@ -8,6 +8,7 @@ import json
 import asyncio
 import concurrent.futures
 import yt_dlp as youtube_dl
+import re
 from dotenv import load_dotenv
 from transcriptor import transcriptor
 from notes_generator import lecture_notes_generator
@@ -169,6 +170,7 @@ async def weekwise_summary(course_name: str, week: int):
     def download_audio(video):
         video_url = video["video_url"]
         topic_name = video["topic_name"]
+        topic_name = re.sub(r'[\/:*?"<>|]', '_', topic_name)
         ydl_opts = {
             "format": "bestaudio/best",
             "postprocessors": [
