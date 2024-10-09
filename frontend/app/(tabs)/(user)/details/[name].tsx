@@ -211,9 +211,9 @@ export default function CourseDetails() {
                 screenOptions={({ route }) => ({
                     tabBarIcon: ({ color, size }) => {
                         let iconName;
-                        if (route.name === 'overview') {
+                        if (route.name === 'Overview') {
                             iconName = 'information-circle-outline'; // Ionicons name for Login
-                        } else if (route.name === 'week') {
+                        } else if (route.name === 'Week') {
                             iconName = 'calendar-outline'; // Ionicons name for Signup
                         }
                         return <Ionicons name={iconName} size={size} color={color} />;
