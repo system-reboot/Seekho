@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, FlatList } from 'react-native';
 import { Stack, useLocalSearchParams, useNavigation } from 'expo-router';
 import WeekCard from '@/components/WeekCard';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -166,6 +166,7 @@ export default function CourseDetails() {
         );
     }
 
+
     function Weeks() {
         return (
             <View style={styles.container}>
@@ -189,7 +190,7 @@ export default function CourseDetails() {
                         headerShown: true,
                     }}
                 />
-                <ScrollView>
+                <ScrollView showsVerticalScrollIndicator={false}>
                     {week.map((weekData: any, index: any) => (
                         <WeekCard
                             key={index}
@@ -198,6 +199,8 @@ export default function CourseDetails() {
                         />
                     ))}
                 </ScrollView>
+
+
             </View >
         );
     }
@@ -227,25 +230,29 @@ export default function CourseDetails() {
                     },
                 })}
             >
-                <Tab.Screen name="overview" component={Description} />
-                {!loading && <Tab.Screen name="week" component={Weeks} />}
+                <Tab.Screen name="Overview" component={Description} />
+                {!loading && <Tab.Screen name="Week" component={Weeks} />}
             </Tab.Navigator>
         </NavigationContainer>
     );
 }
 
 const styles = StyleSheet.create({
+    list: {
+        paddingBottom: 20,
+    },
     container: {
         flex: 1,
-        backgroundColor: 'white',
+        backgroundColor: '#f0e6e6',
         padding: 20,
     },
     section: {
         marginBottom: 20,
-        borderWidth:1,
-        borderColor:"#000000c3",
-        padding:10,
-        borderRadius:10,
+        borderWidth: 1,
+        borderColor: "#000000c3",
+        backgroundColor:"white",
+        padding: 10,
+        borderRadius: 10,
     },
     header: {
         fontSize: 18,
@@ -260,6 +267,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor:"#f0e6e6"
     },
     backButton: {
         marginRight: 15,

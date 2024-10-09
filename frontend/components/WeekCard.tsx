@@ -16,7 +16,7 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
     const [videoUrls, setVideoUrls] = useState<any>(dataArray.filter((item) => (item !== "" && ''))); // Store video URLs
     const [loading, setLoading] = useState(false);
     const { courseName } = useTeacherContext();
-    const [status,setStatus ] = useState("")
+    const [status, setStatus] = useState("")
 
 
     const toggleDropdown = () => {
@@ -83,7 +83,7 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
         setLoading(true);
         setStatus("storing video....")
         await storeVideo(dataArray);
-   // Automatically run the handleTrigger function after storing videos
+        // Automatically run the handleTrigger function after storing videos
     };
 
     const storeVideo = async (dataArray: string[]) => {
@@ -103,7 +103,7 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
             }
         });
 
-        console.log("url check",url)
+        console.log("url check", url)
 
 
         try {
@@ -225,13 +225,19 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
 
     return (
         <View style={styles.card}>
-            <TouchableOpacity onPress={toggleDropdown} style={styles.header}>
-                  <Text style={styles.weekText}>{week}</Text>
-            </TouchableOpacity>
+
+            <View style={styles.card1}>
+                <TouchableOpacity onPress={toggleDropdown} style={styles.header}>
+                    <View style={styles.innerShadow} />
+                    <View style={styles.content}>
+                        <Text style={styles.weekText}>{week}</Text>
+                    </View>
+                </TouchableOpacity>
+            </View>
             <Modal visible={isOpen} animationType="slide">
                 <View style={styles.modalContainer}>
                     <Text style={styles.headerText}>Enter the video URL for: {week}</Text>
-                    <ScrollView>
+                    <ScrollView showsVerticalScrollIndicator={false}>
                         {dataArray.map((subtopic, index) => {
                             if (subtopic.trim() === "") {
                                 return null; // Return null instead of undefined
@@ -266,20 +272,24 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
 const styles = StyleSheet.create({
     card: {
         marginBottom: 10,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 5,
         overflow: 'hidden',
     },
     header: {
-        padding: 10,
-        backgroundColor: '#f8f8f8',
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
     },
     weekText: {
         fontSize: 18,
         fontWeight: 'bold',
+    },
+    card1: {
+        // backgroundColor: '#f9f9f9',
+        padding: 10,
+        marginBottom: 8,
+        elevation: 2, // Shadow effect for Android
+        position: 'relative',
+        borderRadius: 20,
+        // borderColor: "#a81400",
+        // borderWidth: 3,
+        overflow: 'hidden', // Ensures inner shadow doesn't overflow
     },
     modalContainer: {
         flex: 1,
@@ -292,6 +302,25 @@ const styles = StyleSheet.create({
     subtopicText: {
         fontSize: 16,
         marginBottom: 5,
+    },
+    innerShadow: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        borderRadius: 20,
+        backgroundColor: 'white', // Adjust the color and opacity
+        shadowColor: '#c4210b',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.6,
+        shadowRadius: 4,
+        zIndex: 1,
+    },
+    content: {
+        position: 'relative', // Ensure the content appears above the shadow
+        zIndex: 2,
+        margin: 20,
     },
     input: {
         borderColor: '#ccc',
@@ -309,7 +338,7 @@ const styles = StyleSheet.create({
     },
     loaderContainer: {
         flex: 1,
-        gap:10,
+        gap: 10,
         justifyContent: 'center',
         alignItems: 'center',
         marginVertical: 20,

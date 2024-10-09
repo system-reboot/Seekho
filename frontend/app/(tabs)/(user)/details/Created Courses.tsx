@@ -138,6 +138,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
+        backgroundColor:"#f0e6e6"
     },
     list: {
         paddingBottom: 20,
@@ -184,6 +185,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor:"#f0e6e6"
     },
     arrowContainer: {
         position: 'absolute',
