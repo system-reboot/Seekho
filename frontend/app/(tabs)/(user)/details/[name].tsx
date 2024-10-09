@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Stack, useLocalSearchParams, useNavigation } from 'expo-router';
 import WeekCard from '@/components/WeekCard';
 import { useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -23,6 +23,8 @@ export default function CourseDetails() {
     const { teacherName } = useTeacherContext()
 
     console.log(teacherName)
+    const navigation = useNavigation(); // Get navigation instance
+
 
     useEffect(() => {
         if (courseList) {
@@ -105,16 +107,24 @@ export default function CourseDetails() {
             <>
                 <View style={styles.container}>
                     <Stack.Screen options={{
-                        headerTitle: header + "Course",
-                        headerStyle: {
-                            backgroundColor: '#a81400',
-                        },
-                        headerTintColor: '#fff',
+                        headerTitle: `${header?.toUpperCase()} Course`,
                         headerTitleStyle: {
-                            fontWeight: 'bold',
+                            color: "black",
+                            fontSize: 20,
+                            fontWeight: 700,
                         },
+                        headerStyle: {
+                            backgroundColor: "white",
+                        },
+                        headerTintColor: "black", // Change back button color here
+                        headerLeft: () => (
+                            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                                <Ionicons name="arrow-back" size={24} color="black" />
+                            </TouchableOpacity>
+                        ),
                         headerShown: true,
                     }} />
+
                     <ScrollView style={styles.scrollContainer}>
                         <View style={styles.section}>
                             <Text style={styles.header}>Description</Text>
@@ -191,6 +201,7 @@ export default function CourseDetails() {
                         fontWeight: 'bold',
                     },
                     headerShown: true,
+                    
                 }} />
                 <ScrollView>
                     {
@@ -226,12 +237,20 @@ export default function CourseDetails() {
                     },
                     tabBarActiveTintColor: "#a81400",
                     headerShown: false,
+                    tabBarStyle: {
+                        paddingTop: 10,
+                        paddingBottom: 6,
+                    },
+                    tabBarLabelStyle: {
+                        fontSize: 10,
+                        fontWeight: 'bold',
+                    },
                 })}
             >
 
                 <Tab.Screen name="overview" component={Description} />
-                {!loading && <Tab.Screen name="week" component={Weeks} />}            
-                </Tab.Navigator>
+                {!loading && <Tab.Screen name="week" component={Weeks} />}
+            </Tab.Navigator>
         </NavigationContainer>
     );
 }
@@ -239,6 +258,9 @@ export default function CourseDetails() {
 
 
 const styles = StyleSheet.create({
+    backButton: {
+        padding: 10,
+    },
     container: {
         flex: 1,
         padding: 20,
