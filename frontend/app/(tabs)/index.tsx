@@ -201,7 +201,13 @@ function SignupScreen({ navigation }: { navigation: any }) {
     if (loading) {
         return (
             <View style={styles.container}>
-                <ActivityIndicator size="large" color="#a81400" />
+                <View style={styles.loaderContainer}>
+                    <Stack.Screen options={{
+                        headerTitle: "loading...",
+                        headerShown: true,
+                    }} />
+                    <ActivityIndicator size="large" color="#a81400" />
+                </View>
             </View>
         );
     }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, Alert, ImageBackground, Image } from 'react-native';
 import { useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,7 +13,7 @@ export default function RootLayout() {
     const [content, setContent] = useState('');
     const [context, setContext] = useState('');
     const [courseName, setCourseName] = useState('');
-   const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const { teacherName } = useTeacherContext()
 
     const handleCreateCourse = async () => {
@@ -22,7 +22,7 @@ export default function RootLayout() {
 
             const url = `http://34.45.174.70:80/generate_layout?content=${content}&context=${context}&course_name=${courseName}&teacher_id=${teacherName}`;
 
-            console.log(content,context,courseName,teacherName)
+            console.log(content, context, courseName, teacherName)
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -34,8 +34,8 @@ export default function RootLayout() {
             const data = await response.json();
 
             if (response.ok) {
-                    Alert.alert('Success', data.message);
-                    router.push("/details/Created Courses")
+                Alert.alert('Success', data.message);
+                router.push("/details/Created Courses")
             } else {
                 Alert.alert('Error', 'Something went wrong, please try again later.');
             }
@@ -55,19 +55,49 @@ export default function RootLayout() {
         <View style={styles.container}>
             <Stack.Screen options={{
                 headerTitle: `Welcome ${teacherName} `,
-                headerShown:true,
+                headerTitleStyle:{
+                    color:"black",
+                    fontSize:20,
+                    fontWeight:700,
+                },
+                headerStyle:{
+                    backgroundColor:"white",
+
+                },
+                headerTintColor: "black", // Change back button color here
+                headerShown: true,
             }} />
-            <TouchableOpacity style={styles.button} onPress={() => {
-                router.push("/details/Created Courses")
-            }}>
-                <Icon name="book-outline" size={24} color="#fff" />
-                <Text style={styles.buttonText}>All My Courses</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}
-            >
-                <Icon name="add-circle-outline" size={24} color="#fff" />
-                <Text style={styles.buttonText}>Create New Course</Text>
-            </TouchableOpacity>
+            <>
+                <TouchableOpacity style={styles.button}
+                    onPress={() => router.push("/details/Created Courses")}>
+                    <View style={styles.textContainer}>
+                        <Icon name="book-outline" size={19} color="black" />
+                        <Text style={styles.buttonText}>All My Courses</Text>
+                    </View>
+                    <View>
+                        <Image
+                            source={{ uri: 'https://cdn.discordapp.com/attachments/1277183421483057264/1293637008127688704/14620625_5484597-removebg-preview.png?ex=670818d9&is=6706c759&hm=4a0b99bef0947274578f678ba674b4baa6b62e07bf28170c0f9231cffc9ff1eb&' }}
+                            style={{ height: 100, width: 100 }} // Use style prop for height and width
+                        />
+                    </View>
+
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.button}
+                    onPress={() => setModalVisible(true)}>
+                    <View style={styles.textContainer}>
+                        <Icon name="add-circle-outline" size={19} color="black" />
+                        <Text style={styles.buttonText}>Create New Course</Text>
+                    </View>
+                    <View>
+                        <Image
+                            source={{ uri: 'https://cdn.discordapp.com/attachments/1277183421483057264/1293632026871730217/rb_2149341898.png?ex=67081435&is=6706c2b5&hm=574dc10f7e27672d8f2fc4c82badf87c7c051af0e66ad47e697485720a3195f0&' }}
+                            style={{ height: 100, width: 100 }} // Use style prop for height and width
+                        />
+                    </View>
+
+                </TouchableOpacity>
+            </>
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -76,7 +106,7 @@ export default function RootLayout() {
             >
                 <View style={styles.modalContainer}>
                     {loading ? <View style={styles.loaderContainer}>
-                        <ActivityIndicator size="large" color="#c4210b" />
+                        <ActivityIndicator size="large" color="#a81400" />
                     </View> : <View style={styles.modalContent}>
                         <TouchableOpacity
                             style={styles.closeButton}
@@ -120,25 +150,50 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
+
+    textContainer: {
+        alignItems: "center",
+        display: "flex",
+        flexDirection: "row",
+        borderRadius: 20,
+    },
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#f0e6e6',
+        padding: 10,
+        gap: 110,
+        paddingVertical: 150,
     },
     button: {
         flexDirection: 'row',
+        flex: 1,
+        width: "80%",
+        gap: 10,
+        alignContent: "center",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 10,
+        margin: "auto",
+        backgroundColor: "white",
+        borderRadius: 20,
+        borderColor:"red",
+        borderWidth:3,
+    },
+    imageBackground: {
+        flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#c4210b',
-        padding: 15,
-        width: 200,
-        margin: 10,
-        borderRadius: 5,
+        borderRadius: 20,
+        padding: 5,
+        justifyContent: 'center',
+        alignContent: "flex-end",
+        width: '100%', // Full width of the button
+        height: '100%', // Full height of the button
     },
     buttonText: {
-        color: '#fff',
-        fontSize: 15,
-        marginLeft: 10,
+        color: 'black',
+        fontWeight:"500",
+        fontSize: 12,
+        marginLeft: 5,
     },
     loaderContainer: {
         flex: 1,
@@ -170,8 +225,8 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
     },
     submitButton: {
-        backgroundColor: '#c4210b',
-        padding: 10,
+        backgroundColor: '#a81400',
+        padding: 15,
         borderRadius: 5,
         alignItems: 'center',
     },
