@@ -384,7 +384,6 @@ const sub = React.memo(() => {
     }
 
 
-    console.log(videos)
     return (
         <View style={styles.container}>
 
@@ -413,11 +412,10 @@ const sub = React.memo(() => {
             />
             <ScrollView >
                 {subtopics.filter((subtopic: any) => subtopic.trim() !== '').map((subtopic: any, index: any) => (
-                    <>
-                        <TouchableOpacity key={index + subtopic} onPress={() => handleSubtopicPress(subtopic)}>
+                    <View key={index + subtopic} >
+                        <TouchableOpacity onPress={() => handleSubtopicPress(subtopic)}>
                             <View style={styles.innerShadow} />
                             <View style={styles.content}>
-
                                 <View style={styles.subtopicContainer}>
                                     <Text style={styles.subtopicText}>{subtopic}</Text>
                                 </View>
@@ -425,7 +423,7 @@ const sub = React.memo(() => {
                             </View>
                         </TouchableOpacity>
                         <br />
-                    </>
+                    </View>
                 ))}
             </ScrollView>
 
@@ -468,9 +466,9 @@ const quiz = React.memo(() => {
     const { name } = useLocalSearchParams();
 
     const week = Array.isArray(name) ? name[0] : name;
+    const { courseName } = useTeacherContext();
     const [loading, setLoading] = useState(true);
     const [quizData, setData] = useState<any>();
-    const { courseName } = useTeacherContext();
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -579,12 +577,28 @@ const DoubtSolver = React.memo(() => {
     const [modalC, setModalC] = useState("");
     const [loading, setLoading] = useState(false);  // For typing indicator
     const navigation = useNavigation();
+    const { name } = useLocalSearchParams();
+
+    const week = Array.isArray(name) ? name[0] : name;
+    const { courseName } = useTeacherContext();
 
     // Create a ref for the ScrollView
     const scrollViewRef = useRef(null);
 
+    const match = week.match(/Week (\d+)/i);
+    let weekNumber;
+
+    if (match) {
+        weekNumber = match[1]; // Get the week number from the match
+    } else {
+        console.error("Invalid week format");
+        return;
+    }
+
+    console.log(weekNumber,courseName)
+
     const SolveDoubt = async () => {
-        const url = `http://34.45.174.70:80/solve_doubt?user_context=${userC.trim()}&model_context=${modalC}&prompt=${newMessage}`;
+        const url = `http://34.45.174.70:80/solve_doubt?user_context=${userC?.trim()}&model_context=${modalC?.trim()}&prompt=${newMessage}&course_name=${courseName?.trim()}&week=${weekNumber}`;
 
         setLoading(true); // Start typing indicator
         try {
