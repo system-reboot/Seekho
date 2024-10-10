@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, Modal, TextInput, TouchableOpacity, Button, ActivityIndicator, FlatList } from 'react-native';
-import { Stack, useLocalSearchParams, useNavigation, useNavigationContainerRef } from 'expo-router';
+import { router, Stack, useLocalSearchParams, useNavigation, useNavigationContainerRef } from 'expo-router';
 import { useTeacherContext } from '@/context/TeacherId';
 import { Picker } from '@react-native-picker/picker';
 import { MarkdownView } from 'react-native-markdown-view'
@@ -160,7 +160,7 @@ const WeekNotes = React.memo(() => {
                         backgroundColor: "white",
                     },
                     headerLeft: () => (
-                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <TouchableOpacity onPress={() => router.push("/details/Created Courses")} style={styles.backButton}>
                             <Ionicons name="arrow-back" size={24} color="black" />
                         </TouchableOpacity>
                     ),
