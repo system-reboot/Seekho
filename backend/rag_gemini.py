@@ -117,7 +117,7 @@ def solve_the_doubt_with_rag(user_context, model_context, prompt, s,course_name)
         chat_session.history.append({"role": "model", "parts": [model_ctx]})
 
     # Combine retrieved context from PDF with the user's question
-    enhanced_prompt = f"{retrieved_context} \n\n If question asked below does not have answer present in above context than say that I unable to answer out of context questions.\n\nThe question is: {prompt}"
+    enhanced_prompt = f"The context is given below \n {retrieved_context} \n If question asked below does not have answer present in above context than say that I unable to answer out of context questions, and strictly give answer from provided context only.\nThe question is: {prompt}"
 
     # Generate the model's response
     response = chat_session.send_message(enhanced_prompt)
