@@ -86,23 +86,19 @@ def get_images_and_descriptions(data):
             original_response = response.text
             responses = response.text.split("\n")
 
-            responses = [s.strip() for s in responses if s.strip()]
+            responses = [s.strip() for s in responses if s.strip()][:5]
 
-            successful_downloads = 0
             with ThreadPoolExecutor() as executor:
                 future_to_query = {executor.submit(download_and_process_image, s): s for s in responses}
                 for future in as_completed(future_to_query):
-                    if successful_downloads >= 3:
-                        break
                     query, path, description = future.result()
                     if query and path and description:
                         res.append(query)
                         paths.append(path)
                         desc.append(description)
-                        successful_downloads += 1
 
             response2 = chat_session.send_message(
-                f"Given original context\n{context}\n give me markdown formatted text for the given context with identifier of image name at thier appropriate location where it make more sense in context. The name of images are \n{original_response}\n. Just give me the markdown formatted text with identifier of image name in format ![img-name] and nothing else in output."
+                f"Given original context\n{context}\n give me markdown formatted text for the given context with identifier of image name at thier appropriate location where it make more sense in context. The name of images are \n{responses}\n. Just give me the markdown formatted text with identifier of image name in format ![img-name] and nothing else in output."
             )
             responses2 = response2.text
 
@@ -120,26 +116,22 @@ def get_images_and_descriptions(data):
             response = chat_session.send_message(prompt + context)
             original_response = response.text
             responses = response.text.split("\n")
-            responses = [s.strip() for s in responses if s.strip()]
+            responses = [s.strip() for s in responses if s.strip()][:5]
 
-            successful_downloads = 0
             with ThreadPoolExecutor() as executor:
                 future_to_query = {executor.submit(generate_image_from_image, "Comic image of a " + r): r for r in responses}
                 for future in as_completed(future_to_query):
-                    if successful_downloads >= 3:
-                        break
                     img = future.result()
                     r = future_to_query[future]
                     try:
                         img.save(f"images/{r}.png")
                         paths.append(f"images/{r}.png")
                         res.append(r)
-                        successful_downloads += 1
                     except Exception as e:
                         continue
 
             response2 = chat_session.send_message(
-                f"Given original context\n{context}\n give me markdown formatted text for the given context with identifier of image name at thier appropriate location where it make more sense in context. The name of images are \n{original_response}\n. Just give me the markdown formatted text with identifier of image name in format ![img-name] and nothing else in output."
+                f"Given original context\n{context}\n give me markdown formatted text for the given context with identifier of image name at thier appropriate location where it make more sense in context. The name of images are \n{responses}\n. Just give me the markdown formatted text with identifier of image name in format ![img-name] and nothing else in output."
             )
             responses2 = response2.text
 

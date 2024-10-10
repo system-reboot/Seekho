@@ -63,4 +63,5 @@ def translate(input, target, source_language_code="en-IN"):
 
     translated_text = json.loads(response.text)["translated_text"]
     formatted_text = re.sub(r"\*\*\s*(.*?)\s*\*\*", r"  \n**\1**  \n", translated_text)
+    formatted_text = re.sub(r"\[.*?\]\s*\(", "[!Image](", formatted_text)
     return formatted_text

@@ -33,3 +33,6 @@ soundfile
 torch
 torchaudio
 moviepy
+audio_extract
+langchain_google_genai
+chromadb
