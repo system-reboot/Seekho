@@ -26,6 +26,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi import FastAPI, Query, HTTPException, Request
 from typing import List
+from rag_gemini import solve_the_doubt_with_rag
 
 # App
 app = FastAPI()
@@ -375,8 +376,28 @@ async def fetch_video(course_name, week, topic_name):
 
 
 @app.post("/solve_doubt")
-def solve_doubt(user_context, model_context, prompt):
-    return solve_the_doubt(user_context, model_context, prompt)
+async def solve_doubt(user_context, model_context, prompt,course_name,week):  
+    db = db_client["genai"]
+    collection = db["summary"]
+    summary = await collection.find_one({"course_name": course_name})
+    if summary:
+        week_summary = {}
+        for week_data in summary["summary"]:
+            if str(week) in week_data:
+                week_summary = week_data[str(week)]
+                break
+        if not week_summary:
+            return "Summary not found for the given course and week"
+        
+        # Merge all summaries
+        merged_summary = "\n".join([
+            week_summary.get("undergrad", ""),
+            week_summary.get("teenager", ""),
+            week_summary.get("expert", "")
+        ])
+    else:
+        return "Summary not found for the given course and week"
+    return solve_the_doubt_with_rag(user_context, model_context, prompt,merged_summary,course_name)
 
 
 @app.post("/lang_change/")
