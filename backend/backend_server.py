@@ -1,6 +1,7 @@
 # Description: This file contains the backend server code for the GenAI project.
 
 # Imports
+import shutil
 import uvicorn
 import os
 import bcrypt
@@ -379,20 +380,83 @@ def solve_doubt(user_context, model_context, prompt):
 
 
 @app.post("/lang_change/")
-def change_language(course_name: str, week: int, topic_name: str, target_language: str):
+async def change_language(
+    course_name: str, week: int, topic_name: str, target_language: str
+):
+
+    topic_name = re.sub(r"[\\/*?:\"<>|]", "", topic_name).strip()
     db = db_client["genai"]
+    # Check if the video is already translated
+    translated_videos_collection = db["translated_videos"]
+    existing_translation = await translated_videos_collection.find_one(
+        {
+            "course_name": course_name,
+            "week": week,
+            "topic_name": topic_name,
+            "target_language": target_language,
+        }
+    )
+
+    if existing_translation:
+        return existing_translation["translated_audio_path"]
+
     collection = db["videos"]
 
     # Find the video
-    video = collection.find_one(
+    video = await collection.find_one(
         {"course_name": course_name, "week": week, "topic_name": topic_name}
     )
     if not video:
         return {"message": "Video not found"}
 
+    # Fetch the summary content for the given course_name and week
+    summary_collection = db["summary"]
+    summary = await summary_collection.find_one({"course_name": course_name})
+    if summary:
+        for week_summary in summary["summary"]:
+            if str(week) in week_summary:
+                sub_topic = week_summary[str(week)]["undergrad"]
+
     video_url = video["video_url"]
 
-    # Download audio from the video
+    video_file = f"videos/{topic_name}.mp4"
+    audio_file = f"temp_audio/{topic_name}.mp3"
+
+    ydl_opts_audio = {
+        "format": "bestaudio/best",
+        "postprocessors": [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "192",
+            }
+        ],
+        "outtmpl": f"temp_audio/{topic_name}.%(ext)s",  # Save audio files with topic_name
+        "verbose": True,  # Enable verbose output
+        "ffmpeg_location": f"{ffmpeg_path}",  # Specify the location of FFmpeg executable
+    }
+
+    ydl_opts_video = {
+        "format": "bestvideo+bestaudio/best",  # Download the best video and audio, fallback to best if not available
+        "postprocessors": [
+            {
+                "key": "FFmpegVideoConvertor",  # Use FFmpeg to convert the video
+                "preferedformat": "mp4",  # Set the desired output format to mp4
+            }
+        ],
+        "outtmpl": f"videos/{topic_name}.%(ext)s",  # Save video in 'temp_audio' folder
+        "verbose": True,  # Enable verbose output
+        "ffmpeg_location": f"{ffmpeg_path}",  # Specify the location of FFmpeg executable
+    }
+
+    # Download audio
+    with youtube_dl.YoutubeDL(ydl_opts_audio) as ydl:
+        ydl.download([video_url])
+
+    # Download video
+    with youtube_dl.YoutubeDL(ydl_opts_video) as ydl:
+        ydl.download([video_url])
+
     ydl_opts = {
         "format": "bestaudio/best",
         "postprocessors": [
@@ -412,22 +476,31 @@ def change_language(course_name: str, week: int, topic_name: str, target_languag
 
     # Translate audio
     translated_audio_path = translating_audio_language_and_making_chunks(
-        audio_file, target_language
+        audio_file, sub_topic, target_language, video_file
+    )
+
+    # Store the translated audio path in the database
+    await translated_videos_collection.insert_one(
+        {
+            "course_name": course_name,
+            "week": week,
+            "topic_name": topic_name,
+            "target_language": target_language,
+            "translated_audio_path": translated_audio_path,
+        }
     )
 
     # Clean up the downloaded audio file
     if os.path.exists(audio_file):
         os.remove(audio_file)
+    shutil.rmtree("chunks/" + audio_file.split("/")[1].split(".")[0] + "_chunks")
 
-    return {
-        "message": "Audio translated successfully",
-        "audio_file": translated_audio_path,
-    }
+    return translated_audio_path
 
 
 @app.get("/get_video/")
 async def get_video(video_name: str, request: Request):
-    video_path = os.path.join("./videos", video_name)
+    video_path = video_name
 
     # Check if the video file exists
     if not os.path.exists(video_path):
@@ -473,7 +546,7 @@ async def get_video(video_name: str, request: Request):
         iterfile(video_path, start_pos=start, end_pos=end),
         headers=headers,
         media_type=content_type,  # Set the correct MIME type
-        status_code=status_code
+        status_code=status_code,
     )
 
 
