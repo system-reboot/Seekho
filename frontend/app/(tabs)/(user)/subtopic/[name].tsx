@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, Modal, TextInput, TouchableOpacity, Button, ActivityIndicator } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useNavigation, useNavigationContainerRef } from 'expo-router';
 import { useTeacherContext } from '@/context/TeacherId';
 import { Picker } from '@react-native-picker/picker';
 import { MarkdownView } from 'react-native-markdown-view'
@@ -23,6 +23,7 @@ const WeekNotes = React.memo(() => {
     const [selectedLevel, setSelectedLevel] = useState("undergrad");
     const [selectedLanguage, setSelectedLanguage] = useState(0); // Default to English
     const [refresh, setRefresh] = useState(true); // Default to English
+    const navigation = useNavigation()
 
     // Language mapping
     const languageMap = [
@@ -143,33 +144,64 @@ const WeekNotes = React.memo(() => {
 
     return (
         <View style={styles.container}>
-            <Stack.Screen options={{
-                headerTitle: Array.isArray(name) ? name[0] : name || 'Course Details',
-                headerShown: true,
-            }} />
 
-            <Picker
-                selectedValue={selectedLevel}
-                onValueChange={(itemValue) => {
-                    setSelectedLevel(itemValue)
+            <Stack.Screen
+                options={{
+                    headerTitle: Array.isArray(name) ? name[0] : name || 'Course Details',
+                    headerTitleStyle: {
+                        color: "black",
+                        fontSize: 20,
+                        fontWeight: 700,
+                        width: 230,
+                        numberOfLines: 1,  // Limit to one line
+                        ellipsizeMode: "tail",
+                    },
+                    headerStyle: {
+                        backgroundColor: "white",
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                            <Ionicons name="arrow-back" size={24} color="black" />
+                        </TouchableOpacity>
+                    ),
+                    headerTintColor: "black",
+                    headerShown: true,
                 }}
-                style={styles.picker}
-            >
-                <Picker.Item label="Undergrad" value="undergrad" />
-                <Picker.Item label="Teenager" value="teenagers" />
-                <Picker.Item label="Expert" value="experts" />
-            </Picker>
+            />
+            <View style={styles.pickerContainer}>
+                <View style={styles.pickerWrapper}>
+                    <View style={styles.innerShadow} />
+                    <View style={styles.content}>
+                        <Text style={styles.pickerTitle}>Select Level</Text> {/* Title for the first picker */}
+                        <Picker
+                            selectedValue={selectedLevel}
+                            onValueChange={(itemValue) => setSelectedLevel(itemValue)}
+                            style={styles.picker}
+                        >
+                            <Picker.Item label="Undergrad" value="undergrad" />
+                            <Picker.Item label="Teenager" value="teenagers" />
+                            <Picker.Item label="Expert" value="experts" />
+                        </Picker>
+                    </View >
+                </View>
+                <View style={styles.pickerWrapper}>
+                    <View style={styles.innerShadow} />
+                    <View style={styles.content}>
+                        <Text style={styles.pickerTitle}>Select Language</Text> {/* Title for the second picker */}
+                        <Picker
+                            selectedValue={selectedLanguage}
+                            onValueChange={(itemValue: any) => handleChange(itemValue)}
+                            style={styles.picker}
+                        >
+                            {languageMap.map((label, value) => (
+                                <Picker.Item key={value} label={label.charAt(0).toUpperCase() + label.slice(1)} value={value} />
+                            ))}
+                        </Picker>
+                    </View>
+                </View>
+            </View>
 
-            {/* Dropdown for selecting language */}
-            <Picker
-                selectedValue={selectedLanguage}
-                onValueChange={(itemValue: any) => handleChange(itemValue)}
-                style={styles.picker}
-            >
-                {(languageMap).map((label, value) => (
-                    <Picker.Item key={value} label={label.charAt(0).toUpperCase() + label.slice(1)} value={value} />
-                ))}
-            </Picker>
+
 
             {/* Scrollable content based on selected level */}
             <ScrollView style={styles.scrollView}>
@@ -192,6 +224,7 @@ const sub = React.memo(() => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const { courseName, teacherName } = useTeacherContext();
     const [selectedLevel, setSelectedLevel] = useState()
+    const navigation = useNavigation();
     const ref = useRef(null);
 
 
@@ -297,11 +330,30 @@ const sub = React.memo(() => {
     if (loading) {
         return (
             <View style={styles.loaderContainer}>
-                <Stack.Screen options={{
-                    headerTitle: "loading...",
-                    headerShown: true,
-                }} />
 
+                <Stack.Screen
+                    options={{
+                        headerTitle: "loading...",
+                        headerTitleStyle: {
+                            color: "black",
+                            fontSize: 20,
+                            fontWeight: 700,
+                            width: 230,
+                            numberOfLines: 1,  // Limit to one line
+                            ellipsizeMode: "tail",
+                        },
+                        headerStyle: {
+                            backgroundColor: "white",
+                        },
+                        headerLeft: () => (
+                            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                                <Ionicons name="arrow-back" size={24} color="black" />
+                            </TouchableOpacity>
+                        ),
+                        headerTintColor: "black",
+                        headerShown: true,
+                    }}
+                />
                 <ActivityIndicator size="large" color="#c4210b" />
             </View>
         );
@@ -311,17 +363,43 @@ const sub = React.memo(() => {
     console.log(videos)
     return (
         <View style={styles.container}>
-            <Stack.Screen options={{
-                headerTitle: "subtopics",
-                headerShown: true,
-            }} />
-            <ScrollView style={styles.scrollView}>
+
+            <Stack.Screen
+                options={{
+                    headerTitle: "Subtopics",
+                    headerTitleStyle: {
+                        color: "black",
+                        fontSize: 20,
+                        fontWeight: 700,
+                        width: 230,
+                        numberOfLines: 1,  // Limit to one line
+                        ellipsizeMode: "tail",
+                    },
+                    headerStyle: {
+                        backgroundColor: "white",
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                            <Ionicons name="arrow-back" size={24} color="black" />
+                        </TouchableOpacity>
+                    ),
+                    headerTintColor: "black",
+                    headerShown: true,
+                }}
+            />
+            <ScrollView >
                 {subtopics.filter((subtopic: any) => subtopic.trim() !== '').map((subtopic: any, index: any) => (
-                    <TouchableOpacity key={index} onPress={() => handleSubtopicPress(subtopic)}>
-                        <View style={styles.subtopicContainer}>
-                            <Text style={styles.subtopicText}>{subtopic}</Text>
-                        </View>
-                    </TouchableOpacity>
+                    <>
+                        <TouchableOpacity key={index + subtopic} onPress={() => handleSubtopicPress(subtopic)}>
+                            <View style={styles.innerShadow} />
+                            <View style={styles.content}>
+                                <View style={styles.subtopicContainer}>
+                                    <Text style={styles.subtopicText}>{subtopic}</Text>
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                        <br />
+                    </>
                 ))}
             </ScrollView>
 
@@ -347,7 +425,7 @@ const sub = React.memo(() => {
                             <Picker.Item label="Hindi" value="hindi" />
                             <Picker.Item label="Bengali" value="bengali" />
                         </Picker>
-
+                        <br />
                         {/* Replace with actual video URL if needed */}
                         <App videoId={videos} />
                         <br />
@@ -367,6 +445,7 @@ const quiz = React.memo(() => {
     const [loading, setLoading] = useState(true);
     const [quizData, setData] = useState<any>();
     const { courseName } = useTeacherContext();
+    const navigation = useNavigation();
 
     useEffect(() => {
 
@@ -427,12 +506,30 @@ const quiz = React.memo(() => {
 
     return (
         <View>
-            <Stack.Screen options={{
-                headerTitle: "quiz",
-                headerShown: true,
-            }} />
+            <Stack.Screen
+                options={{
+                    headerTitle: "Quiz",
+                    headerTitleStyle: {
+                        color: "black",
+                        fontSize: 20,
+                        fontWeight: 700,
+                        width: 230,
+                        numberOfLines: 1,  // Limit to one line
+                        ellipsizeMode: "tail",
+                    },
+                    headerStyle: {
+                        backgroundColor: "white",
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                            <Ionicons name="arrow-back" size={24} color="black" />
+                        </TouchableOpacity>
+                    ),
+                    headerTintColor: "black",
+                    headerShown: true,
+                }}
+            />
             <ScrollView style={styles.container}>
-
                 {quizData?.questions && Object.keys(quizData.questions).map((key) => {
                     return (
                         <View key={key} style={styles.questionContainer}>
@@ -459,6 +556,7 @@ const DoubtSolver = React.memo(() => {
     const [userC, setuserC] = useState("")
     const [modalC, setModalC] = useState("")
     const [loading, setLoading] = useState(false);
+    const navigation = useNavigation()
 
 
     const SolveDoubt = async () => {
@@ -506,10 +604,29 @@ const DoubtSolver = React.memo(() => {
 
     return (
         <View style={styles.container}>
-            <Stack.Screen options={{
-                headerTitle: "doubt solver",
-                headerShown: true,
-            }} />
+              <Stack.Screen
+                options={{
+                    headerTitle: "Doubt Solver",
+                    headerTitleStyle: {
+                        color: "black",
+                        fontSize: 20,
+                        fontWeight: 700,
+                        width: 230,
+                        numberOfLines: 1,  // Limit to one line
+                        ellipsizeMode: "tail",
+                    },
+                    headerStyle: {
+                        backgroundColor: "white",
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                            <Ionicons name="arrow-back" size={24} color="black" />
+                        </TouchableOpacity>
+                    ),
+                    headerTintColor: "black",
+                    headerShown: true,
+                }}
+            />
             <ScrollView style={styles.chatContainer}>
                 {chats.map((chat, index) => (
                     <View
@@ -561,6 +678,14 @@ const Subtopic = () => {
                     },
                     tabBarActiveTintColor: "#a81400",
                     headerShown: false,
+                    tabBarStyle: {
+                        paddingTop: 10,
+                        paddingBottom: 6,
+                    },
+                    tabBarLabelStyle: {
+                        fontSize: 10,
+                        fontWeight: 'bold',
+                    },
                 })}
             >
 
@@ -578,31 +703,65 @@ const styles = StyleSheet.create({
         flex: 1,
         marginTop: 0,
         padding: 10,
-        backgroundColor: '#f8f8f8',
+        backgroundColor: '#f0e6e6',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         elevation: 5,
     },
-    picker: {
-        height: 50,
-        width: '100%',
-        borderRadius: 10,
+    pickerContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         marginVertical: 10,
-        backgroundColor: '#e0e0e0',
-        paddingHorizontal: 10,
-        fontSize: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 2,
+    },
+    pickerWrapper: {
+        flex: 1,
+        marginHorizontal: 5,
+        borderRadius: 10,
+        paddingHorizontal: 5,
+        paddingVertical: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    innerShadow: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        borderRadius: 10,
+        backgroundColor: 'white', // Adjust the color and opacity
+        shadowColor: '#c4210b',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.6,
+        shadowRadius: 4,
+        zIndex: 1,
+    },
+    content: {
+        position: 'relative', // Ensure the content appears above the shadow
+        zIndex: 2,
+    },
+    picker: {
+        width: '100%',
+        height: 40,
         color: '#333',
+        borderRadius: 10,
+    },
+    pickerTitle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginBottom: 5,  // Space between title and picker
+        color: '#333',
+    },
+    activeTab: {
+        backgroundColor: '#c4210b', // Active tab color
+        borderColor: '#c4210b',
+        borderWidth: 2,
     },
     scrollView: {
         flex: 1,
         marginBottom: 16,
-        borderColor: '#ff1e00',
+        borderColor: 'black',
         borderWidth: 2,
         padding: 10,
         backgroundColor: '#fff',
@@ -613,9 +772,7 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     subtopicContainer: {
-        marginBottom: 10,
         padding: 10,
-        backgroundColor: '#fff',
         borderRadius: 5,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
@@ -655,7 +812,6 @@ const styles = StyleSheet.create({
         bottom: 0,
         right: 0,
     },
-
     video: {
         alignSelf: 'center',
         margin: 20,
@@ -716,6 +872,7 @@ const styles = StyleSheet.create({
         padding: 10,
         borderWidth: 1,
         borderColor: '#ccc',
+        backgroundColor:"white",
         borderRadius: 5,
         marginRight: 10,
     },
@@ -723,6 +880,11 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: '#f0e6e6',
+    },
+    backButton: {
+        marginRight: 15,
+        marginLeft: 15,
     },
 });
 

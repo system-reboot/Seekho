@@ -158,6 +158,7 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
 
             if (response.ok) {
                 setStatus("generating quiz...")
+                setLoading(false);
                 handleQuizGeneration();
             } else {
                 Alert.alert('Error', 'Something went wrong, please try again later.');
@@ -165,9 +166,7 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
         } catch (error) {
             Alert.alert('Error', 'Failed to connect to the server.');
             console.error('Error:', error);
-        } finally {
-            setLoading(false);
-        }
+        } 
     };
 
     const handleQuizGeneration = async () => {
@@ -236,7 +235,9 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
             </View>
             <Modal visible={isOpen} animationType="slide">
                 <View style={styles.modalContainer}>
-                    <Text style={styles.headerText}>Enter the video URL for: {week}</Text>
+                    <Text style={styles.headerText}>Provide the video url's for: </Text>
+                    <Text style={styles.headerText}> {week}</Text>
+                    <br />
                     <ScrollView showsVerticalScrollIndicator={false}>
                         {dataArray.map((subtopic, index) => {
                             if (subtopic.trim() === "") {
@@ -244,13 +245,14 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
                             }
                             return (
                                 <View key={index} style={styles.subtopicInputContainer}>
-                                    <Text style={styles.subtopicText}>{subtopic}</Text>
+                                    <Text style={styles.subtopicText}>{index + ". " + subtopic}</Text>
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Enter video URL"
-                                        value={videoUrls[index]}
+                                        value={videoUrls[index] || ""} // Ensure the value is always a string
                                         onChangeText={(value) => handleInputChange(index, value)}
                                     />
+
                                 </View>
                             );
                         })}
@@ -294,13 +296,14 @@ const styles = StyleSheet.create({
     modalContainer: {
         flex: 1,
         padding: 20,
-        backgroundColor: '#fff',
+        backgroundColor: '#f0e6e6',
     },
     subtopicInputContainer: {
         marginBottom: 10,
     },
     subtopicText: {
-        fontSize: 16,
+        fontSize: 14,
+        textAlign: "left",
         marginBottom: 5,
     },
     innerShadow: {
@@ -324,16 +327,17 @@ const styles = StyleSheet.create({
     },
     input: {
         borderColor: '#ccc',
+        backgroundColor: "white",
         borderWidth: 1,
         padding: 10,
         marginBottom: 10,
         borderRadius: 5,
     },
     headerText: {
-        fontSize: 20,                // Increase the font size
+        fontSize: 18,                // Increase the font size
         fontWeight: 'bold',          // Make the font bold
         color: '#333',               // Set a dark color for better visibility
-        marginBottom: 10,            // Add some space below the text
+        marginBottom: 15,            // Add some space below the text
         textAlign: 'center',         // Center the text
     },
     loaderContainer: {

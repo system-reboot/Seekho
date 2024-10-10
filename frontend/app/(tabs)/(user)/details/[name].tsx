@@ -57,6 +57,12 @@ export default function CourseDetails() {
         })();
     }, [teacherName]);
 
+    String.prototype.toCapitalCase = function () {
+        return this.split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+      };
+
     function Description() {
         if (loading) {
             return (
@@ -91,7 +97,7 @@ export default function CourseDetails() {
                 <View style={styles.container}>
                     <Stack.Screen
                         options={{
-                            headerTitle: `${header}`,
+                            headerTitle: `${header.toCapitalCase()}`,
                             headerTitleStyle: {
                                 color: "black",
                                 fontSize: 20,
@@ -167,16 +173,20 @@ export default function CourseDetails() {
     }
 
 
+
     function Weeks() {
         return (
             <View style={styles.container}>
                 <Stack.Screen
                     options={{
-                        headerTitle: `${header} Week Wise `,
+                        headerTitle: `${header.toCapitalCase()} Week Wise `,
                         headerTitleStyle: {
                             color: "black",
                             fontSize: 20,
                             fontWeight: 700,
+                            width: 200,  
+                            numberOfLines: 1,  // Limit to one line
+                            ellipsizeMode: "tail",
                         },
                         headerStyle: {
                             backgroundColor: "white",
@@ -240,11 +250,13 @@ export default function CourseDetails() {
 const styles = StyleSheet.create({
     list: {
         paddingBottom: 20,
+        paddingVertical:10,
     },
     container: {
         flex: 1,
         backgroundColor: '#f0e6e6',
-        padding: 20,
+        paddingHorizontal: 20,
+        paddingVertical:10,
     },
     section: {
         marginBottom: 20,
