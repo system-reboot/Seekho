@@ -530,9 +530,9 @@ const quiz = React.memo(() => {
                 }}
             />
             <ScrollView style={styles.container}>
-                {quizData?.questions && Object.keys(quizData.questions).map((key) => {
+                {quizData?.questions && Object.keys(quizData.questions).map((key, index) => {
                     return (
-                        <View key={key} style={styles.questionContainer}>
+                        <View key={index} style={styles.questionContainer}>
                             <Text style={styles.questionText}>{`${key}. ${quizData.questions[key]}`}</Text>
                             {/* {quizData.options[key].map((option: any, index: any) => (
                         <Text key={index} style={styles.optionText}>{option}</Text>
@@ -553,17 +553,18 @@ const DoubtSolver = React.memo(() => {
         { type: 'receiver', message: 'Sure, what is your doubt?' }
     ]);
     const [newMessage, setNewMessage] = useState('');
-    const [userC, setuserC] = useState("")
-    const [modalC, setModalC] = useState("")
-    const [loading, setLoading] = useState(false);
-    const navigation = useNavigation()
+    const [userC, setuserC] = useState("");
+    const [modalC, setModalC] = useState("");
+    const [loading, setLoading] = useState(false);  // For typing indicator
+    const navigation = useNavigation();
 
+    // Create a ref for the ScrollView
+    const scrollViewRef = useRef(null);
 
     const SolveDoubt = async () => {
-
         const url = `http://34.45.174.70:80/solve_doubt?user_context=${userC.trim()}&model_context=${modalC}&prompt=${newMessage}`;
-
-        setLoading(true);
+        
+        setLoading(true); // Start typing indicator
         try {
             const response = await fetch(url, {
                 method: 'POST',
@@ -573,13 +574,15 @@ const DoubtSolver = React.memo(() => {
             });
 
             const data = await response.json();
-
-            console.log(data)
+            console.log(data);
 
             if (response.ok) {
                 setuserC(data.user_context);
                 setModalC(data.model_context);
-                setChats((prev) => [...prev, { type: 'receiver', message: data.model_response }]);
+                setChats((prev) => [
+                    ...prev.slice(0, -1), // Remove "typing..." message
+                    { type: 'receiver', message: data.model_response } // Add response
+                ]);
             } else {
                 Alert.alert('Error', data.message || 'Something went wrong, please try again later.');
             }
@@ -587,24 +590,30 @@ const DoubtSolver = React.memo(() => {
             Alert.alert('Error', 'Failed to connect to the server.');
             console.error('Error:', error);
         } finally {
-            setLoading(false);
+            setLoading(false);  // Stop typing indicator
         }
-    }
-
-
-
+    };
 
     const sendMessage = () => {
         if (newMessage.trim()) {
-            setChats((prev) => [...prev, { type: 'sender', message: newMessage }]);
+            setChats((prev) => [
+                ...prev, 
+                { type: 'sender', message: newMessage },
+                { type: 'receiver', message: 'Typing...' }  // Add typing indicator
+            ]);
             SolveDoubt();
             setNewMessage('');
+
+            // Scroll to the end after sending the message
+            setTimeout(() => {
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+            }, 100);  // Delay for smooth scroll
         }
     };
 
     return (
         <View style={styles.container}>
-              <Stack.Screen
+            <Stack.Screen
                 options={{
                     headerTitle: "Doubt Solver",
                     headerTitleStyle: {
@@ -627,14 +636,16 @@ const DoubtSolver = React.memo(() => {
                     headerShown: true,
                 }}
             />
-            <ScrollView style={styles.chatContainer}>
+            <ScrollView 
+                style={styles.chatContainer} 
+                ref={scrollViewRef}  // Attach ref to ScrollView
+                onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })} // Scroll when content changes
+                showsVerticalScrollIndicator={false}
+           >
                 {chats.map((chat, index) => (
                     <View
                         key={index}
-                        style={[
-                            styles.messageContainer,
-                            chat.type === 'receiver' ? styles.sender : styles.receiver
-                        ]}
+                        style={[styles.messageContainer, chat.type === 'receiver' ? styles.sender : styles.receiver]}
                     >
                         <Text style={styles.message}>{chat.message}</Text>
                     </View>
@@ -647,12 +658,16 @@ const DoubtSolver = React.memo(() => {
                     value={newMessage}
                     onChangeText={setNewMessage}
                     placeholder="Type your message..."
+                    returnKeyType="send"
+                    onSubmitEditing={sendMessage}
                 />
                 <Button title="Send" onPress={sendMessage} color="#a81400" />
             </View>
         </View>
     );
-})
+});
+
+
 
 
 const Subtopic = () => {
@@ -872,7 +887,7 @@ const styles = StyleSheet.create({
         padding: 10,
         borderWidth: 1,
         borderColor: '#ccc',
-        backgroundColor:"white",
+        backgroundColor: "white",
         borderRadius: 5,
         marginRight: 10,
     },
