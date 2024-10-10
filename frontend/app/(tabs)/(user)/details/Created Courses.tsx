@@ -41,7 +41,7 @@ export default function RootLayout() {
 
             } catch (error) {
                 Alert.alert('Error', 'Failed to connect to the server.');
-                console.error('Error:', error);
+                console.error('Error:', error); 
             } finally {
                 setLoading(false);
             }
@@ -52,8 +52,6 @@ export default function RootLayout() {
     const handleScroll = (event: any) => {
         const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
         const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
-
-        // If user is not at bottom, show the down arrow
         setShowArrow(!isAtBottom);
     };
 
@@ -68,8 +66,11 @@ export default function RootLayout() {
                 >
                     <View style={styles.innerShadow} />
                     <View style={styles.content}>
-                        <Text style={styles.courseName}>{keys[1].toUpperCase()}</Text>
-                        <Text style={styles.courseWeeks}>Instructor: {item.teacher_id}</Text>
+                        <View>
+                            <Text style={styles.courseName}>{keys[1].toUpperCase()}</Text>
+                            <Text style={styles.courseWeeks}>Instructor: {item.teacher_id}</Text>
+                        </View>
+                        <Ionicons name='caret-forward' size={20}  color={"#cf8a81"}/>
                     </View>
                 </TouchableOpacity>
             </View>
@@ -106,6 +107,9 @@ export default function RootLayout() {
                     color: "black",
                     fontSize: 20,
                     fontWeight: 700,
+                    width: 300,
+                    numberOfLines: 1,  // Limit to one line
+                    ellipsizeMode: "tail",
                 },
                 headerStyle: {
                     backgroundColor: "white",
@@ -124,12 +128,6 @@ export default function RootLayout() {
                 scrollEventThrottle={16} // Improves performance when scrolling
             />
 
-            {/* Conditionally render down arrow if more items exist below */}
-            {showArrow && (
-                <View style={styles.arrowContainer}>
-                    <Ionicons name="caret-down" size={30} color="#d24e3dc4" />
-                </View>
-            )}
         </View>
     );
 }
@@ -138,7 +136,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
-        backgroundColor:"#f0e6e6"
+        backgroundColor: "#f0e6e6"
     },
     list: {
         paddingBottom: 20,
@@ -163,7 +161,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: 'white', // Adjust the color and opacity
         shadowColor: '#c4210b',
-        shadowOffset: { width:0, height: 1 },
+        shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.6,
         shadowRadius: 4,
         zIndex: 1,
@@ -171,7 +169,11 @@ const styles = StyleSheet.create({
     content: {
         position: 'relative', // Ensure the content appears above the shadow
         zIndex: 2,
-        margin:20,
+        margin: 20,
+        display:"flex",
+        flexDirection:"row",
+        justifyContent:"space-between",
+        alignItems:"center"
     },
     courseName: {
         fontSize: 15,
@@ -185,11 +187,12 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor:"#f0e6e6"
+        backgroundColor: "#f0e6e6"
     },
     arrowContainer: {
         position: 'absolute',
         bottom: 20, // Position near the bottom of the screen
+        right:5,
         alignSelf: 'center', // Center horizontally
     },
 });

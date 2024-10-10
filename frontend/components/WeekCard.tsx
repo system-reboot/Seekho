@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Button, Alert, Modal, ScrollView, ActivityIndicator } from 'react-native';
 import { Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 
 type WeekCardProp = {
@@ -230,6 +231,7 @@ const WeekCard = ({ week, subTopic }: WeekCardProp) => {
                     <View style={styles.innerShadow} />
                     <View style={styles.content}>
                         <Text style={styles.weekText}>{week}</Text>
+                        <Ionicons name='caret-forward' size={20}  color={"#cf8a81"}/>
                     </View>
                 </TouchableOpacity>
             </View>
@@ -324,6 +326,10 @@ const styles = StyleSheet.create({
         position: 'relative', // Ensure the content appears above the shadow
         zIndex: 2,
         margin: 20,
+        display:"flex",
+        flexDirection:"row",
+        justifyContent:"space-between",
+        alignItems:"center"
     },
     input: {
         borderColor: '#ccc',

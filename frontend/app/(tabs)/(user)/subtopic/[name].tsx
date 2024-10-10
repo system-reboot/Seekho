@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, Modal, TextInput, TouchableOpacity, Button, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, Modal, TextInput, TouchableOpacity, Button, ActivityIndicator, FlatList } from 'react-native';
 import { Stack, useLocalSearchParams, useNavigation, useNavigationContainerRef } from 'expo-router';
 import { useTeacherContext } from '@/context/TeacherId';
 import { Picker } from '@react-native-picker/picker';
@@ -168,35 +168,64 @@ const WeekNotes = React.memo(() => {
                     headerShown: true,
                 }}
             />
+            <ScrollView style={styles.scrollView}>
+                <MarkdownView>
+                    {!loading ? data && data[selectedLevel] : "loading..."}
+                </MarkdownView>
+            </ScrollView>
             <View style={styles.pickerContainer}>
-                <View style={styles.pickerWrapper}>
-                    <View style={styles.innerShadow} />
-                    <View style={styles.content}>
-                        <Text style={styles.pickerTitle}>Select Level</Text> {/* Title for the first picker */}
-                        <Picker
-                            selectedValue={selectedLevel}
-                            onValueChange={(itemValue) => setSelectedLevel(itemValue)}
-                            style={styles.picker}
-                        >
-                            <Picker.Item label="Undergrad" value="undergrad" />
-                            <Picker.Item label="Teenager" value="teenagers" />
-                            <Picker.Item label="Expert" value="experts" />
-                        </Picker>
-                    </View >
+                <View style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}>
+                    <View style={styles.pickerWrapper}>
+                        <View style={styles.innerShadow} />
+                        <View style={styles.content}>
+                            <Picker
+                                selectedValue={selectedLevel}
+                                onValueChange={(itemValue) => setSelectedLevel(itemValue)}
+                                style={styles.picker}
+                            >
+                                {selectedLevel === "" && (
+                                    <Picker.Item label="Select Level" value="" />
+                                )}
+                                <Picker.Item label="Undergrad" value="undergrad" />
+                                <Picker.Item label="Teenager" value="teenagers" />
+                                <Picker.Item label="Expert" value="experts" />
+                            </Picker>
+
+                        </View >
+                    </View>
                 </View>
-                <View style={styles.pickerWrapper}>
-                    <View style={styles.innerShadow} />
-                    <View style={styles.content}>
-                        <Text style={styles.pickerTitle}>Select Language</Text> {/* Title for the second picker */}
-                        <Picker
-                            selectedValue={selectedLanguage}
-                            onValueChange={(itemValue: any) => handleChange(itemValue)}
-                            style={styles.picker}
-                        >
-                            {languageMap.map((label, value) => (
-                                <Picker.Item key={value} label={label.charAt(0).toUpperCase() + label.slice(1)} value={value} />
-                            ))}
-                        </Picker>
+                <View style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}>
+                    <View style={styles.pickerWrapper}>
+                        <View style={styles.innerShadow} />
+                        <View style={styles.content}>
+                            <Picker
+                                selectedValue={selectedLanguage}
+                                onValueChange={(itemValue: any) => handleChange(itemValue)}
+                                style={styles.picker}
+                            >
+                                {selectedLanguage === 0 && (
+                                    <Picker.Item label="Select Language" value="" />
+                                )}
+                                {Object.entries(languageMap).map(([value, label]) => (
+                                    <Picker.Item
+                                        key={value}
+                                        label={label.charAt(0).toUpperCase() + label.slice(1)}
+                                        value={value}
+                                    />
+                                ))}
+                            </Picker>
+
+                        </View>
                     </View>
                 </View>
             </View>
@@ -204,11 +233,6 @@ const WeekNotes = React.memo(() => {
 
 
             {/* Scrollable content based on selected level */}
-            <ScrollView style={styles.scrollView}>
-                <MarkdownView>
-                    {!loading ? data && data[selectedLevel] : "loading..."}
-                </MarkdownView>
-            </ScrollView>
         </View>
     );
 })
@@ -393,9 +417,11 @@ const sub = React.memo(() => {
                         <TouchableOpacity key={index + subtopic} onPress={() => handleSubtopicPress(subtopic)}>
                             <View style={styles.innerShadow} />
                             <View style={styles.content}>
+
                                 <View style={styles.subtopicContainer}>
                                     <Text style={styles.subtopicText}>{subtopic}</Text>
                                 </View>
+                                <Ionicons name='caret-forward' size={20} color={"#cf8a81"} />
                             </View>
                         </TouchableOpacity>
                         <br />
@@ -505,7 +531,7 @@ const quiz = React.memo(() => {
     }
 
     return (
-        <View>
+        <View style={styles.container}>
             <Stack.Screen
                 options={{
                     headerTitle: "Quiz",
@@ -529,15 +555,11 @@ const quiz = React.memo(() => {
                     headerShown: true,
                 }}
             />
-            <ScrollView style={styles.container}>
+            <ScrollView showsVerticalScrollIndicator={false}>
                 {quizData?.questions && Object.keys(quizData.questions).map((key, index) => {
                     return (
                         <View key={index} style={styles.questionContainer}>
                             <Text style={styles.questionText}>{`${key}. ${quizData.questions[key]}`}</Text>
-                            {/* {quizData.options[key].map((option: any, index: any) => (
-                        <Text key={index} style={styles.optionText}>{option}</Text>
-                    ))} */}
-                            {/* <Text style={styles.answerText}>{`Correct Answer: ${quizData.answers[key]}`}</Text> */}
                         </View>
                     );
                 })}
@@ -563,7 +585,7 @@ const DoubtSolver = React.memo(() => {
 
     const SolveDoubt = async () => {
         const url = `http://34.45.174.70:80/solve_doubt?user_context=${userC.trim()}&model_context=${modalC}&prompt=${newMessage}`;
-        
+
         setLoading(true); // Start typing indicator
         try {
             const response = await fetch(url, {
@@ -597,7 +619,7 @@ const DoubtSolver = React.memo(() => {
     const sendMessage = () => {
         if (newMessage.trim()) {
             setChats((prev) => [
-                ...prev, 
+                ...prev,
                 { type: 'sender', message: newMessage },
                 { type: 'receiver', message: 'Typing...' }  // Add typing indicator
             ]);
@@ -636,12 +658,12 @@ const DoubtSolver = React.memo(() => {
                     headerShown: true,
                 }}
             />
-            <ScrollView 
-                style={styles.chatContainer} 
+            <ScrollView
+                style={styles.chatContainer}
                 ref={scrollViewRef}  // Attach ref to ScrollView
                 onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })} // Scroll when content changes
                 showsVerticalScrollIndicator={false}
-           >
+            >
                 {chats.map((chat, index) => (
                     <View
                         key={index}
@@ -726,8 +748,9 @@ const styles = StyleSheet.create({
     },
     pickerContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginVertical: 10,
+        justifyContent: 'space-evenly',
+        alignItems: "center",
+        marginVertical: 5,
     },
     pickerWrapper: {
         flex: 1,
@@ -755,18 +778,24 @@ const styles = StyleSheet.create({
     content: {
         position: 'relative', // Ensure the content appears above the shadow
         zIndex: 2,
+        padding: 10,
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center"
     },
     picker: {
-        width: '100%',
-        height: 40,
+        height: 30,
+        width: 100,
         color: '#333',
-        borderRadius: 10,
+        border: 0,
     },
     pickerTitle: {
         fontSize: 14,
         fontWeight: 'bold',
         marginBottom: 5,  // Space between title and picker
         color: '#333',
+        zIndex: 2
     },
     activeTab: {
         backgroundColor: '#c4210b', // Active tab color
@@ -789,13 +818,14 @@ const styles = StyleSheet.create({
     subtopicContainer: {
         padding: 10,
         borderRadius: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
+        width: 300,
+        numberOfLines: 1,  // Limit to one line
+        ellipsizeMode: "tail",
         elevation: 3,
     },
     subtopicText: {
+        numberOfLines: 1,  // Limit to one line
+        ellipsizeMode: "tail",
         fontSize: 16,
         color: '#333',
     },
@@ -842,11 +872,12 @@ const styles = StyleSheet.create({
         padding: 10,
         borderWidth: 1,
         borderColor: '#ccc',
+        backgroundColor: "#ffffffb1",
         borderRadius: 5,
     },
     questionText: {
-        fontWeight: 'bold',
-        fontSize: 16,
+        fontWeight: '600',
+        fontSize: 13,
     },
     optionText: {
         marginLeft: 10,
