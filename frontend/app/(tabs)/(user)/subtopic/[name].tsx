@@ -8,7 +8,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 // @ts-expect-error
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import App from './Videoplayer';
+import { App } from './YotubePlayer';
+import VideoPlayer from './Videoplayer';
 // import VideoScreen from './Videoplayer';
 
 // Load the module
@@ -247,11 +248,9 @@ const sub = React.memo(() => {
     const [selectedSubtopic, setSelectedSubtopic] = useState<any>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const { courseName, teacherName } = useTeacherContext();
-    const [selectedLevel, setSelectedLevel] = useState()
+    const [selectedLevel, setSelectedLevel] = useState();
     const navigation = useNavigation();
     const ref = useRef(null);
-
-
 
     useEffect(() => {
         (async () => {
@@ -267,7 +266,6 @@ const sub = React.memo(() => {
 
                 const data = await response.json();
                 const filterData: any[] = data.filter((item: any) => Object.keys(item).includes(courseName));
-
 
                 if (filterData.length === 0) {
                     console.error("No data found matching the criteria.");
@@ -310,8 +308,8 @@ const sub = React.memo(() => {
 
         console.log(courseName, week, subtopic)
 
-        const url = `http://34.45.174.70:80/fetch_video?course_name=${courseName}&week=${weekNumber}&topic_name=${subtopic.trim()}`;
-        setLoading(true)
+        const url = `http://34.45.174.70:80/fetch_video?course_name=${courseName.trim()}&week=${weekNumber}&topic_name=${subtopic.trim()}`;
+        setLoading(true);
         try {
             const response = await fetch(url, {
                 method: 'GET',
@@ -326,21 +324,13 @@ const sub = React.memo(() => {
             }
 
             const videoData = await response.json();
-
-
-            const extractYouTubeVideoID = (url) => {
-                const urlObj = new URL(url);
-                return urlObj.searchParams.get('v');
-            };
-
-            setVideos(extractYouTubeVideoID(videoData.video_url));
-            console.log(videoData)
+            setVideos(videoData.video_url);
+            console.log(videoData);
             setIsModalVisible(true); // Show the modal after fetching video details
         } catch (error) {
             console.error('Error fetching video:', error);
         } finally {
-
-            setLoading(false)
+            setLoading(false);
             setIsModalVisible(true); // Show the modal
         }
     };
@@ -349,12 +339,50 @@ const sub = React.memo(() => {
         setIsModalVisible(false); // Close the modal
     };
 
+    function isYoutubeUrl(url: string): boolean {
+        const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+        return youtubeRegex.test(url);
+    }
 
+    const handleLanguageChange = async (itemValue: string) => {
+        setSelectedLevel(itemValue);
+
+        if (itemValue == "english") {
+            handleSubtopicPress(selectedSubtopic)
+            return;
+        }
+
+        const match = week.match(/Week (\d+)/i);
+        let weekNumber = match ? parseInt(match[1]) : null;
+
+        console.log(selectedSubtopic, itemValue)
+        const url = `http://34.45.174.70:80/lang_change?course_name=${courseName.trim()}&week=${weekNumber}&topic_name=${selectedSubtopic.trim()}&target_language=${itemValue}`;
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                console.error("Failed to change language");
+                return;
+            }
+
+            const data = await response.json();
+            setVideos(data);
+        } catch (error) {
+            console.error("Error changing language:", error);
+        }
+    };
+
+    console.log(videos)
 
     if (loading) {
         return (
             <View style={styles.loaderContainer}>
-
                 <Stack.Screen
                     options={{
                         headerTitle: "loading...",
@@ -383,10 +411,10 @@ const sub = React.memo(() => {
         );
     }
 
+    const isYoutube = isYoutubeUrl(videos);
 
     return (
         <View style={styles.container}>
-
             <Stack.Screen
                 options={{
                     headerTitle: "Subtopics",
@@ -410,16 +438,16 @@ const sub = React.memo(() => {
                     headerShown: true,
                 }}
             />
-            <ScrollView >
+            <ScrollView>
                 {subtopics.filter((subtopic: any) => subtopic.trim() !== '').map((subtopic: any, index: any) => (
-                    <View key={index + subtopic} >
+                    <View key={index + subtopic}>
                         <TouchableOpacity onPress={() => handleSubtopicPress(subtopic)}>
                             <View style={styles.innerShadow} />
                             <View style={styles.content}>
                                 <View style={styles.subtopicContainer}>
                                     <Text style={styles.subtopicText}>{subtopic}</Text>
                                 </View>
-                                <Ionicons name='caret-forward' size={20} color={"#cf8a81"} />
+                                <Ionicons name="caret-forward" size={20} color={"#cf8a81"} />
                             </View>
                         </TouchableOpacity>
                         <br />
@@ -436,22 +464,27 @@ const sub = React.memo(() => {
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalText}>Selected Subtopic: {selectedSubtopic}</Text>
                         <Text style={styles.modalText}>Choose Audio:</Text>
-                        <Picker
-                            selectedValue={selectedLevel}
-                            onValueChange={(itemValue) => {
-                                setSelectedLevel(itemValue)
-                            }}
-                            style={styles.picker}
-                        >
-                            <Picker.Item label="English" value="english" />
-                            <Picker.Item label="Hindi" value="hindi" />
-                            <Picker.Item label="Bengali" value="bengali" />
-                        </Picker>
-                        <br />
-                        {/* Replace with actual video URL if needed */}
-                        <App videoId={videos} />
+                        <View style={styles.pickerWrapper}>
+                            <View style={styles.innerShadow} />
+                            <View style={styles.content}>
+                                <Picker
+                                    selectedValue={selectedLevel}
+                                    onValueChange={handleLanguageChange} // Trigger API on language change
+                                    style={styles.picker}
+                                >
+                                    <Picker.Item label="English" value="english" />
+                                    <Picker.Item label="Hindi" value="hindi" />
+                                </Picker>
+                                <br />
+                            </View>
+                        </View>
+
+                        {isYoutube ? (
+                            <App uriId={videos} />
+                        ) : (
+                            <VideoPlayer url={videos} />
+                        )}
                         <br />
                         <Button title="Close" onPress={closeModal} color={"#a81400"} />
                     </View>
@@ -459,7 +492,7 @@ const sub = React.memo(() => {
             </Modal>
         </View>
     );
-})
+});
 
 
 const quiz = React.memo(() => {
@@ -595,7 +628,7 @@ const DoubtSolver = React.memo(() => {
         return;
     }
 
-    console.log(weekNumber,courseName)
+    console.log(weekNumber, courseName)
 
     const SolveDoubt = async () => {
         const url = `http://34.45.174.70:80/solve_doubt?user_context=${userC?.trim()}&model_context=${modalC?.trim()}&prompt=${newMessage}&course_name=${courseName?.trim()}&week=${weekNumber}`;
