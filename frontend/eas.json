@@ -13,6 +13,7 @@
         "buildType": "apk"
       }
     },
+    
     "preview": {
       "distribution": "internal"
     },

@@ -4,12 +4,16 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, ActivityIndi
 import { Stack } from 'expo-router';
 import { useTeacherContext } from '@/context/TeacherId';
 import { Ionicons } from '@expo/vector-icons'; // Import Icon
+import CourseCreationModal from '../CourseCreationModal';
+// @ts-expect-error
+import Icon from 'react-native-vector-icons/Ionicons';
 
 export default function RootLayout() {
     const [courseList, setCourseList] = useState([]);
     const [loading, setLoading] = useState(true);
     const { teacherName, setTeacherData } = useTeacherContext();
     const [showArrow, setShowArrow] = useState(false); // State to control arrow visibility
+    const [modalVisible, setModalVisible] = useState(false);
 
     const handlePress = (item: string) => {
         const courseName = Object.keys(item)[1];
@@ -41,7 +45,7 @@ export default function RootLayout() {
 
             } catch (error) {
                 Alert.alert('Error', 'Failed to connect to the server.');
-                console.error('Error:', error); 
+                console.error('Error:', error);
             } finally {
                 setLoading(false);
             }
@@ -70,7 +74,7 @@ export default function RootLayout() {
                             <Text style={styles.courseName}>{keys[1].toUpperCase()}</Text>
                             <Text style={styles.courseWeeks}>Instructor: {item.teacher_id}</Text>
                         </View>
-                        <Ionicons name='caret-forward' size={20}  color={"#cf8a81"}/>
+                        <Ionicons name='caret-forward' size={20} color={"#cf8a81"} />
                     </View>
                 </TouchableOpacity>
             </View>
@@ -126,8 +130,26 @@ export default function RootLayout() {
                 showsVerticalScrollIndicator={false}
                 onScroll={handleScroll} // Add scroll listener here
                 scrollEventThrottle={16} // Improves performance when scrolling
+                ListFooterComponent={() => {
+                    return <View style={styles.card}>
+                        <TouchableOpacity
+                            onPress={() => setModalVisible(true)}
+                        >
+                            <View style={styles.innerShadow} />
+                            <View style={styles.content}>
+                                <Text style={styles.courseName}>Create New Course</Text>
+                                <Icon name="add-circle-outline" size={30} color="#a81400" />
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                }}
             />
 
+
+            <CourseCreationModal
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+            />
         </View>
     );
 }
@@ -170,10 +192,10 @@ const styles = StyleSheet.create({
         position: 'relative', // Ensure the content appears above the shadow
         zIndex: 2,
         margin: 20,
-        display:"flex",
-        flexDirection:"row",
-        justifyContent:"space-between",
-        alignItems:"center"
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center"
     },
     courseName: {
         fontSize: 15,
@@ -192,7 +214,7 @@ const styles = StyleSheet.create({
     arrowContainer: {
         position: 'absolute',
         bottom: 20, // Position near the bottom of the screen
-        right:5,
+        right: 5,
         alignSelf: 'center', // Center horizontally
     },
 });
