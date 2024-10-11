@@ -119,6 +119,7 @@ const styles = StyleSheet.create({
         display: "flex",
         flexDirection: "row",
         borderRadius: 20,
+        gap:5,
     },
     buttonText: {
         color: '#a81400',
