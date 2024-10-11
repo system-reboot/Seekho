@@ -192,9 +192,9 @@ const WeekNotes = React.memo(() => {
                                 {selectedLevel === "" && (
                                     <Picker.Item label="Select Level" value="" />
                                 )}
-                                <Picker.Item label="Undergrad" value="undergrad" />
-                                <Picker.Item label="Teenager" value="teenagers" />
-                                <Picker.Item label="Expert" value="experts" />
+                                <Picker.Item label="Difficulty : Undergrad" value="undergrad" />
+                                <Picker.Item label="Difficulty : Teenager" value="teenagers" />
+                                <Picker.Item label="Difficulty : Expert" value="experts" />
                             </Picker>
 
                         </View >
@@ -475,6 +475,9 @@ const sub = React.memo(() => {
                                 >
                                     <Picker.Item label="English" value="english" />
                                     <Picker.Item label="Hindi" value="hindi" />
+                                    <Picker.Item label="Telugu" value="telugu" />
+                                    <Picker.Item label="Tamil" value="tamil" />
+                                    <Picker.Item label="Bengali" value="bengali" />
                                 </Picker>
                                 <br />
                             </View>
@@ -749,13 +752,13 @@ const Subtopic = () => {
                 screenOptions={({ route }) => ({
                     tabBarIcon: ({ color, size }) => {
                         let iconName;
-                        if (route.name === 'notes') {
+                        if (route.name === 'Notes') {
                             iconName = 'information-circle-outline'; // Ionicons name for Login
-                        } else if (route.name === 'subtopic') {
+                        } else if (route.name === 'Subtopics') {
                             iconName = 'bookmark'; // Ionicons name for Signup
-                        } else if (route.name === "quiz") {
+                        } else if (route.name === "Quiz") {
                             iconName = "help"
-                        } else if (route.name === "doubt") {
+                        } else if (route.name === "Doubt") {
                             iconName = "code"
                         }
                         return <Ionicons name={iconName} size={size} color={color} />;
@@ -773,10 +776,10 @@ const Subtopic = () => {
                 })}
             >
 
-                <Tab.Screen name="notes" component={WeekNotes} />
-                <Tab.Screen name="subtopic" component={sub} />
-                <Tab.Screen name="quiz" component={quiz} />
-                <Tab.Screen name="doubt" component={DoubtSolver} />
+                <Tab.Screen name="Notes" component={WeekNotes} />
+                <Tab.Screen name="Subtopics" component={sub} />
+                <Tab.Screen name="Quiz" component={quiz} />
+                <Tab.Screen name="Doubt" component={DoubtSolver} />
             </Tab.Navigator>
         </NavigationContainer>
     );
@@ -833,7 +836,7 @@ const styles = StyleSheet.create({
     },
     picker: {
         height: 30,
-        width: 100,
+        width: 150,
         color: '#333',
         border: 0,
     },
