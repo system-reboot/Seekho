@@ -36,17 +36,17 @@ Seekho is a generative AI-powered platform aimed at simplifying the course creat
 - **Database**: MongoDB.
 - **Additional**: Google Search Engine for downloading images used in the content.
 
-![image](https://github.com/user-attachments/assets/85a8855e-69d1-4b69-a484-bf84869c439c)
-![image](https://github.com/user-attachments/assets/a98a72ec-ec48-468d-b20b-ea403129b2e3)
-![image](https://github.com/user-attachments/assets/58251501-4628-44e4-868e-966e0841cccf)
-![image](https://github.com/user-attachments/assets/a99a2af0-cc76-43a7-8e34-66f2b8bd50d1)
-![image](https://github.com/user-attachments/assets/c9e2342f-ac8f-4d87-b394-e53149727729)
-![image](https://github.com/user-attachments/assets/333ab724-447a-47ca-a41b-0ae6658c900d)
-![image](https://github.com/user-attachments/assets/d52c0d40-5077-4fb2-a6c3-b4d3e155f6e3)
-![image](https://github.com/user-attachments/assets/92ba4e68-addd-47f6-aa7f-b69621cd5342)
-![image](https://github.com/user-attachments/assets/48ce3f9c-0b84-4240-8bc3-a4afba0e75ef)
-![image](https://github.com/user-attachments/assets/9f1f6da7-684e-4b1f-adb8-f5f820195edb)
-![image](https://github.com/user-attachments/assets/0522fd4e-8666-41d3-a4bb-ade11aed901d)
+![image](https://github.com/user-attachments/assets/f8442f44-56ac-474e-9e8a-cfed044c921d)
+![image](https://github.com/user-attachments/assets/485adda9-e1a4-421e-ac7f-d31675146cff)
+![image](https://github.com/user-attachments/assets/e8beeea2-a26b-4bce-bdeb-12f47ff7a036)
+![image](https://github.com/user-attachments/assets/4bfcba7d-dd4b-4bfb-a79e-a498bf9544e1)
+![image](https://github.com/user-attachments/assets/03e8a319-f773-495f-89ca-4ee0b33a49e9)
+![image](https://github.com/user-attachments/assets/50596ada-e35d-43ae-898b-0c3c8a8cde9e)
+![image](https://github.com/user-attachments/assets/b2c1c87e-c4d5-4955-bbd6-30981e47a84c)
+![image](https://github.com/user-attachments/assets/f504e6aa-28d8-466f-b2e3-b4a0786aaa83)
+![image](https://github.com/user-attachments/assets/38e00d3d-cb5b-4c9b-8985-58f1fd7347a4)
+![image](https://github.com/user-attachments/assets/ff20ceca-bbbe-4903-95a0-94b889d4366c)
+![image](https://github.com/user-attachments/assets/b5bccb63-4eee-420c-a08f-82cf9f8f7083)
 
 
 ## Installation
