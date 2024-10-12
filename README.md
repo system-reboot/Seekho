@@ -65,11 +65,11 @@ Seekho is a generative AI-powered platform aimed at simplifying the course creat
 
 4. Run the backend:
     ```bash
-    uvicorn main:app --reload
+    uvicorn backend_server:app --reload
     ```
 5. Start the frontend:
     ```bash
-    npm start
+    npx expo start
     ```
 
 ## Usage
@@ -87,4 +87,6 @@ Seekho is a generative AI-powered platform aimed at simplifying the course creat
 ## Contributing
 
 Feel free to contribute to the development of Seekho. Fork the repository, make changes, and submit a pull request.
+
+[![Hits](https://hits.sh/github.com/system-reboot/Seekho.svg?label=Visitors'%20Count)](https://hits.sh/github.com/system-reboot/Seekho/)
 
