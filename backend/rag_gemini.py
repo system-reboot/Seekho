@@ -9,6 +9,7 @@ from langchain_core.documents import Document
 import warnings
 warnings.filterwarnings('ignore')
 import shutil
+from googletrans import Translator
 # Load environment variables
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
@@ -99,7 +100,12 @@ def solve_the_doubt_with_rag(user_context, model_context, prompt, s,course_name)
             shutil.rmtree(persist_dir)
             print(f"Directory deleted:{persist_dir}")
             return None
-    
+
+    translator = Translator()
+    x = translator.translate(prompt)
+    original_lang = x.src
+    target_lang = x.dest
+    prompt = x.text
     retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 10})
     # Retrieve the relevant context from the PDF based on the user's question
     relevant_docs = retriever.get_relevant_documents(prompt)
@@ -127,7 +133,7 @@ def solve_the_doubt_with_rag(user_context, model_context, prompt, s,course_name)
 
     # Return the model response along with updated contexts
     return {
-        "model_response": model_response,
+        "model_response": translator.translate(model_response, dest=original_lang).text,
         "user_context": "$D$".join(user_context) + "$D$" + prompt,
         "model_context": "$D$".join(model_context) + "$D$" + model_response,
     }
