@@ -282,7 +282,7 @@ export default function Login() {
             style={styles.headerContainer}
         >
             <Image
-                source={{ uri: 'https://cdn.discordapp.com/attachments/1277183421483057264/1293616447062278257/Logo.png?ex=670805b3&is=6706b433&hm=991c635348246c0abf69e270fe190810329ec6c8cf7321bc718433741e0edb1d&' }}
+                source={require('../../assets/images/seekho_logo.png')}
                 style={styles.logo}
                 resizeMode="contain"
             />

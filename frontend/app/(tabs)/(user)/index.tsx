@@ -38,7 +38,7 @@ export default function RootLayout() {
                         </View>
                         <View>
                             <Image
-                                source={{ uri: 'https://cdn.discordapp.com/attachments/1277183421483057264/1293637008127688704/14620625_5484597-removebg-preview.png?ex=670818d9&is=6706c759&hm=4a0b99bef0947274578f678ba674b4baa6b62e07bf28170c0f9231cffc9ff1eb&' }}
+                                source={require('../../../assets/images/all_courses.png')}
                                 style={{ height: 100, width: 100 }}
                             />
                         </View>
@@ -51,7 +51,7 @@ export default function RootLayout() {
                     <View style={styles.content}>
                         <View>
                             <Image
-                                source={{ uri: 'https://cdn.discordapp.com/attachments/1277183421483057264/1293632026871730217/rb_2149341898.png?ex=67081435&is=6706c2b5&hm=574dc10f7e27672d8f2fc4c82badf87c7c051af0e66ad47e697485720a3195f0&' }}
+                                source={require('../../../assets/images/create_courses.png')}
                                 style={{ height: 100, width: 100 }}
                             />
                         </View>

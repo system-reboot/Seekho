@@ -498,109 +498,222 @@ const sub = React.memo(() => {
 });
 
 
+// const quiz = React.memo(() => {
+//     const { name } = useLocalSearchParams();
+
+//     const week = Array.isArray(name) ? name[0] : name;
+//     const { courseName } = useTeacherContext();
+//     const [loading, setLoading] = useState(true);
+//     const [quizData, setData] = useState<any>();
+//     const navigation = useNavigation();
+
+//     useEffect(() => {
+
+//         const handleFetchQuiz = async () => {
+//             const match = week.match(/Week (\d+)/i);
+//             let weekNumber;
+
+//             if (match) {
+//                 weekNumber = match[1]; // Get the week number from the match
+//             } else {
+//                 console.error("Invalid week format");
+//                 return;
+//             }
+
+//             const url = `http://34.45.174.70:80/fetch_quiz?course_name=${courseName.trim()}&week=${weekNumber}`;
+
+//             setLoading(true);
+//             try {
+//                 const response = await fetch(url, {
+//                     method: 'GET',
+//                     headers: {
+//                         'Content-Type': 'application/json',
+//                     },
+//                 });
+
+//                 const data = await response.json();
+
+//                 console.log(data)
+
+//                 if (response.ok) {
+//                     setData(data)
+//                 } else {
+//                     Alert.alert('Error', data.message || 'Something went wrong, please try again later.');
+//                 }
+//             } catch (error) {
+//                 Alert.alert('Error', 'Failed to connect to the server.');
+//                 console.error('Error:', error);
+//             } finally {
+//                 setLoading(false);
+//             }
+//         };
+
+//         handleFetchQuiz();
+//     }, [])
+
+//     if (loading) {
+//         return (
+//             <View style={styles.loaderContainer}>
+//                 <Stack.Screen options={{
+//                     headerTitle: "loading...",
+//                     headerShown: true,
+//                 }} />
+
+//                 <ActivityIndicator size="large" color="#c4210b" />
+//             </View>
+//         );
+//     }
+
+//     return (
+//         <View style={styles.container}>
+//             <Stack.Screen
+//                 options={{
+//                     headerTitle: "Quiz",
+//                     headerTitleStyle: {
+//                         color: "black",
+//                         fontSize: 20,
+//                         fontWeight: 700,
+//                         width: 230,
+//                         numberOfLines: 1,  // Limit to one line
+//                         ellipsizeMode: "tail",
+//                     },
+//                     headerStyle: {
+//                         backgroundColor: "white",
+//                     },
+//                     headerLeft: () => (
+//                         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+//                             <Ionicons name="arrow-back" size={24} color="black" />
+//                         </TouchableOpacity>
+//                     ),
+//                     headerTintColor: "black",
+//                     headerShown: true,
+//                 }}
+//             />
+//             <ScrollView showsVerticalScrollIndicator={false}>
+//                 {quizData?.questions && Object.keys(quizData.questions).map((key, index) => {
+//                     return (
+//                         <View key={index} style={styles.questionContainer}>
+//                             <Text style={styles.questionText}>{`${key}. ${quizData.questions[key]}`}</Text>
+//                         </View>
+//                     );
+//                 })}
+//             </ScrollView>
+//         </View>
+//     )
+// })
+
 const quiz = React.memo(() => {
     const { name } = useLocalSearchParams();
-
     const week = Array.isArray(name) ? name[0] : name;
     const { courseName } = useTeacherContext();
     const [loading, setLoading] = useState(true);
-    const [quizData, setData] = useState<any>();
+    const [quizData, setQuizData] = useState<any>();
+    const [selectedAnswers, setSelectedAnswers] = useState<{ [key: string]: string }>({});
+    const [feedback, setFeedback] = useState<{ [key: string]: string }>({});
     const navigation = useNavigation();
-
+  
     useEffect(() => {
-
-        const handleFetchQuiz = async () => {
-            const match = week.match(/Week (\d+)/i);
-            let weekNumber;
-
-            if (match) {
-                weekNumber = match[1]; // Get the week number from the match
-            } else {
-                console.error("Invalid week format");
-                return;
-            }
-
-            const url = `http://34.45.174.70:80/fetch_quiz?course_name=${courseName.trim()}&week=${weekNumber}`;
-
-            setLoading(true);
-            try {
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                const data = await response.json();
-
-                console.log(data)
-
-                if (response.ok) {
-                    setData(data)
-                } else {
-                    Alert.alert('Error', data.message || 'Something went wrong, please try again later.');
-                }
-            } catch (error) {
-                Alert.alert('Error', 'Failed to connect to the server.');
-                console.error('Error:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        handleFetchQuiz();
-    }, [])
-
+      const handleFetchQuiz = async () => {
+        const match = week.match(/Week (\d+)/i);
+        let weekNumber;
+  
+        if (match) {
+          weekNumber = match[1]; // Get the week number from the match
+        } else {
+          console.error("Invalid week format");
+          return;
+        }
+  
+        const url = `http://34.45.174.70:80/fetch_quiz?course_name=${courseName.trim()}&week=${weekNumber}`;
+  
+        setLoading(true);
+        try {
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+  
+          const data = await response.json();
+  
+          if (response.ok) {
+            setQuizData(data);
+          } else {
+            Alert.alert('Error', data.message || 'Something went wrong, please try again later.');
+          }
+        } catch (error) {
+          Alert.alert('Error', 'Failed to connect to the server.');
+          console.error('Error:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      handleFetchQuiz();
+    }, []);
+  
+    const handleOptionSelect = (questionKey: string, option: string) => {
+      if (selectedAnswers[questionKey]) return; // Prevent selecting another option after answering
+  
+      const correctAnswer = quizData.answers[questionKey];
+      setSelectedAnswers(prev => ({ ...prev, [questionKey]: option }));
+  
+      if (option.trim() === correctAnswer.trim()) {
+        setFeedback(prev => ({ ...prev, [questionKey]: 'Correct!' }));
+      } else {
+        setFeedback(prev => ({
+          ...prev,
+          [questionKey]: `Wrong! Correct answer: ${correctAnswer}`,
+        }));
+      }
+    };
+  
     if (loading) {
-        return (
-            <View style={styles.loaderContainer}>
-                <Stack.Screen options={{
-                    headerTitle: "loading...",
-                    headerShown: true,
-                }} />
-
-                <ActivityIndicator size="large" color="#c4210b" />
-            </View>
-        );
-    }
-
-    return (
-        <View style={styles.container}>
-            <Stack.Screen
-                options={{
-                    headerTitle: "Quiz",
-                    headerTitleStyle: {
-                        color: "black",
-                        fontSize: 20,
-                        fontWeight: 700,
-                        width: 230,
-                        numberOfLines: 1,  // Limit to one line
-                        ellipsizeMode: "tail",
-                    },
-                    headerStyle: {
-                        backgroundColor: "white",
-                    },
-                    headerLeft: () => (
-                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                            <Ionicons name="arrow-back" size={24} color="black" />
-                        </TouchableOpacity>
-                    ),
-                    headerTintColor: "black",
-                    headerShown: true,
-                }}
-            />
-            <ScrollView showsVerticalScrollIndicator={false}>
-                {quizData?.questions && Object.keys(quizData.questions).map((key, index) => {
-                    return (
-                        <View key={index} style={styles.questionContainer}>
-                            <Text style={styles.questionText}>{`${key}. ${quizData.questions[key]}`}</Text>
-                        </View>
-                    );
-                })}
-            </ScrollView>
+      return (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#c4210b" />
         </View>
-    )
-})
+      );
+    }
+  
+    return (
+      <View style={styles.container}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {quizData?.questions && Object.keys(quizData.questions).map((key, index) => (
+            <View key={index} style={styles.questionContainer}>
+              <Text style={styles.questionText}>{`${key}. ${quizData.questions[key]}`}</Text>
+  
+              {/* Check if options and answers are available */}
+              {quizData.options && quizData.answers && quizData.options[key] ? (
+                <View>
+                  {quizData.options[key].map((option: string, optionIndex: number) => (
+                    <TouchableOpacity
+                      key={optionIndex}
+                      style={[
+                        styles.optionButton,
+                        selectedAnswers[key] === option && styles.selectedOption,
+                      ]}
+                      onPress={() => handleOptionSelect(key, option)}
+                      disabled={!!selectedAnswers[key]} // Disable button once an option is selected
+                    >
+                      <Text style={styles.optionText}>{option}</Text>
+                    </TouchableOpacity>
+                  ))}
+                  {/* Display feedback */}
+                  {feedback[key] && (
+                    <Text style={feedback[key].includes("Wrong") ? styles.wrongText :  styles.feedbackText}>
+                      {feedback[key]}
+                    </Text>
+                  )}
+                </View>
+              ) : null} {/* If no options, just show the question */}
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  });
 
 
 const DoubtSolver = React.memo(() => {
@@ -919,24 +1032,36 @@ const styles = StyleSheet.create({
     },
     questionContainer: {
         marginBottom: 20,
+      },
+      questionText: {
+        fontSize: 16,
+        fontWeight: "bold",
+        marginBottom: 10,
+      },
+      optionButton: {
         padding: 10,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        backgroundColor: "#ffffffb1",
-        borderRadius: 5,
-    },
-    questionText: {
-        fontWeight: '600',
-        fontSize: 13,
-    },
-    optionText: {
-        marginLeft: 10,
-        fontSize: 14,
-    },
-    answerText: {
-        marginTop: 5,
-        fontStyle: 'italic',
-    },
+        backgroundColor: "#e0e0e0",
+        borderRadius: 8,
+        marginBottom: 10,
+      },
+      selectedOption: {
+        backgroundColor: "#cfe3ff", // Highlight selected option
+      },
+      optionText: {
+        fontSize: 16,
+      },
+      feedbackText: {
+        fontSize: 12,
+        fontWeight: "bold",
+        marginTop: 10,
+        color: "green", // You can change color for correct/wrong feedback
+      },
+      wrongText: {
+        fontSize: 12,
+        fontWeight: "bold",
+        marginTop: 10,
+        color: "red", // You can change color for correct/wrong feedback
+      },
     chatContainer: {
         flex: 1,
         marginBottom: 10,
