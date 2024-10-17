@@ -498,109 +498,6 @@ const sub = React.memo(() => {
 });
 
 
-// const quiz = React.memo(() => {
-//     const { name } = useLocalSearchParams();
-
-//     const week = Array.isArray(name) ? name[0] : name;
-//     const { courseName } = useTeacherContext();
-//     const [loading, setLoading] = useState(true);
-//     const [quizData, setData] = useState<any>();
-//     const navigation = useNavigation();
-
-//     useEffect(() => {
-
-//         const handleFetchQuiz = async () => {
-//             const match = week.match(/Week (\d+)/i);
-//             let weekNumber;
-
-//             if (match) {
-//                 weekNumber = match[1]; // Get the week number from the match
-//             } else {
-//                 console.error("Invalid week format");
-//                 return;
-//             }
-
-//             const url = `http://34.45.174.70:80/fetch_quiz?course_name=${courseName.trim()}&week=${weekNumber}`;
-
-//             setLoading(true);
-//             try {
-//                 const response = await fetch(url, {
-//                     method: 'GET',
-//                     headers: {
-//                         'Content-Type': 'application/json',
-//                     },
-//                 });
-
-//                 const data = await response.json();
-
-//                 console.log(data)
-
-//                 if (response.ok) {
-//                     setData(data)
-//                 } else {
-//                     Alert.alert('Error', data.message || 'Something went wrong, please try again later.');
-//                 }
-//             } catch (error) {
-//                 Alert.alert('Error', 'Failed to connect to the server.');
-//                 console.error('Error:', error);
-//             } finally {
-//                 setLoading(false);
-//             }
-//         };
-
-//         handleFetchQuiz();
-//     }, [])
-
-//     if (loading) {
-//         return (
-//             <View style={styles.loaderContainer}>
-//                 <Stack.Screen options={{
-//                     headerTitle: "loading...",
-//                     headerShown: true,
-//                 }} />
-
-//                 <ActivityIndicator size="large" color="#c4210b" />
-//             </View>
-//         );
-//     }
-
-//     return (
-//         <View style={styles.container}>
-//             <Stack.Screen
-//                 options={{
-//                     headerTitle: "Quiz",
-//                     headerTitleStyle: {
-//                         color: "black",
-//                         fontSize: 20,
-//                         fontWeight: 700,
-//                         width: 230,
-//                         numberOfLines: 1,  // Limit to one line
-//                         ellipsizeMode: "tail",
-//                     },
-//                     headerStyle: {
-//                         backgroundColor: "white",
-//                     },
-//                     headerLeft: () => (
-//                         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-//                             <Ionicons name="arrow-back" size={24} color="black" />
-//                         </TouchableOpacity>
-//                     ),
-//                     headerTintColor: "black",
-//                     headerShown: true,
-//                 }}
-//             />
-//             <ScrollView showsVerticalScrollIndicator={false}>
-//                 {quizData?.questions && Object.keys(quizData.questions).map((key, index) => {
-//                     return (
-//                         <View key={index} style={styles.questionContainer}>
-//                             <Text style={styles.questionText}>{`${key}. ${quizData.questions[key]}`}</Text>
-//                         </View>
-//                     );
-//                 })}
-//             </ScrollView>
-//         </View>
-//     )
-// })
 
 const quiz = React.memo(() => {
     const { name } = useLocalSearchParams();
@@ -610,6 +507,10 @@ const quiz = React.memo(() => {
     const [quizData, setQuizData] = useState<any>();
     const [selectedAnswers, setSelectedAnswers] = useState<{ [key: string]: string }>({});
     const [feedback, setFeedback] = useState<{ [key: string]: string }>({});
+    const [modalVisible, setModalVisible] = useState(false);
+    const [newQuestion, setNewQuestion] = useState('');
+    const [newOptions, setNewOptions] = useState<string[]>(['', '', '', '']);
+    const [correctAnswer, setCorrectAnswer] = useState('');
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -668,6 +569,64 @@ const quiz = React.memo(() => {
             }));
         }
     };
+
+    const handleAddNewQuestion = async () => {
+        const newKey = (Object.keys(quizData.questions).length + 1).toString();
+        
+        // Update local state with the new question, options, and answer
+        const updatedQuizData = {
+            ...quizData,
+            questions: { ...quizData.questions, [newKey]: newQuestion },
+            options: { ...quizData.options, [newKey]: newOptions },
+            answers: { ...quizData.answers, [newKey]: correctAnswer }
+        };
+    
+        setQuizData(updatedQuizData);
+        setModalVisible(false);
+        setNewQuestion('');
+        setNewOptions(['', '', '', '']);
+        setCorrectAnswer('');
+    
+        // Prepare the POST request URL
+        const match = week.match(/Week (\d+)/i);
+        let weekNumber;
+    
+        if (match) {
+            weekNumber = match[1];
+        } else {
+            console.error("Invalid week format");
+            return;
+        }
+    
+        const url = `http://34.45.174.70:80/upload_quiz`;
+    
+        try {
+            // Send POST request to upload the updated quiz data
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    week:weekNumber,
+                    course_name:courseName.trim(),
+                    quiz:updatedQuizData
+                }),
+            });
+    
+            const data = await response.json();
+    
+            if (response.ok) {
+                Alert.alert('Success', 'Question added and quiz updated successfully!');
+            } else {
+                Alert.alert('Error', data.message || 'Something went wrong, please try again later.');
+            }
+        } catch (error) {
+            Alert.alert('Error', 'Failed to connect to the server.');
+            console.error('Error:', error);
+        }
+    };
+    
 
     if (loading) {
         return (
@@ -733,10 +692,55 @@ const quiz = React.memo(() => {
                         ) : null} {/* If no options, just show the question */}
                     </View>
                 ))}
+
+                {/* Add New Question Button */}
+                <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addButton}>
+                    <Text style={styles.addButtonText}>Add New Question</Text>
+                </TouchableOpacity>
             </ScrollView>
+
+            {/* Modal for Adding New Question */}
+            <Modal visible={modalVisible} animationType="slide">
+                <View style={styles.modalContainerQuiz}>
+                    <Text style={styles.modalTitle}>Add New Question</Text>
+
+                    <TextInput
+                        placeholder="Enter Question"
+                        style={styles.inputQuiz}
+                        value={newQuestion}
+                        onChangeText={setNewQuestion}
+                    />
+
+                    {newOptions.map((option, index) => (
+                        <TextInput
+                            key={index}
+                            placeholder={`Option ${index + 1}`}
+                            style={styles.inputQuiz}
+                            value={option}
+                            onChangeText={text => {
+                                const updatedOptions = [...newOptions];
+                                updatedOptions[index] = text;
+                                setNewOptions(updatedOptions);
+                            }}
+                        />
+                    ))}
+
+                    <TextInput
+                        placeholder="Correct Answer"
+                        style={styles.inputQuiz}
+                        value={correctAnswer}
+                        onChangeText={setCorrectAnswer}
+                    />
+
+                    <Button title="Add" color="#c4210b" onPress={handleAddNewQuestion} />
+                    <br/>
+                    <Button title="Close" color="#c4210b" onPress={() => setModalVisible(false)} />
+                </View>
+            </Modal>
         </View>
     );
 });
+
 
 
 const DoubtSolver = React.memo(() => {
@@ -1133,6 +1137,17 @@ const styles = StyleSheet.create({
         marginRight: 15,
         marginLeft: 15,
     },
+    addButton: {
+        backgroundColor: '#c4210b',
+        padding: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginVertical: 20,
+    },
+    addButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+    modalContainerQuiz: { flex: 1, padding: 20, justifyContent: 'center' },
+    modalTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
+    inputQuiz: { borderWidth: 1, borderColor: '#ccc', padding: 10, marginBottom: 15, borderRadius: 5 },
 });
 
 export default Subtopic;

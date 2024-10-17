@@ -27,6 +27,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from fastapi import FastAPI, Query, HTTPException, Request
 from typing import List
 from rag_gemini import solve_the_doubt_with_rag
+from pydantic import BaseModel
 
 # App
 app = FastAPI()
@@ -48,6 +49,14 @@ db_client = AsyncIOMotorClient(
     mongodb.replace("<username>", db_user).replace("<password>", db_password)
 )
 
+
+# classes 
+
+# Define the data model for the incoming quiz data
+class QuizData(BaseModel):
+    course_name: str
+    week: int
+    quiz: dict
 
 # Routes
 # Base Route
@@ -362,6 +371,43 @@ async def fetch_quiz(course_name, week):
                 return json.loads(week_quiz[str(week)])
     else:
         return "Quiz not found for the given course and week"
+    
+
+
+
+@app.post("/upload_quiz")
+async def upload_quiz(data: QuizData):
+    try:
+        
+        db = db_client["genai"]
+        collection = db["quizzes"]
+        existing_quiz = await collection.find_one({"course_name": data.course_name})
+
+        if existing_quiz:
+            updated = False
+            for week_quiz in existing_quiz["quizzes"]:
+                if str(data.week) in week_quiz:
+                    week_quiz[str(data.week)] = json.dumps(data.quiz)
+                    updated = True
+                    break
+            if not updated:
+                # Append a new week if it doesn't exist
+                existing_quiz["quizzes"].append({str(data.week): json.dumps(data.quiz)})
+            await collection.update_one({"course_name": data.course_name}, {"$set": {"quizzes": existing_quiz["quizzes"]}})
+        else:
+            # Create a new document if no quiz exists for the course
+            new_quiz = {
+                "course_name": data.course_name,
+                "quizzes": [{str(data.week): json.dumps(data.quiz)}]
+            }
+            await collection.insert_one(new_quiz)
+
+        return {"message": "Quiz uploaded successfully"}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error uploading quiz: {str(e)}")
+
+
 
 
 @app.get("/fetch_video")
