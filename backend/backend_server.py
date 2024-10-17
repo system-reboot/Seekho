@@ -405,7 +405,7 @@ async def change_language(
     course_name: str, week: int, topic_name: str, target_language: str
 ):
 
-    topic_name = re.sub(r"[\\/*?:\"<>|]", "", topic_name).strip()
+    topic_name2 = re.sub(r"[\\/*?:\"<>|]", "", topic_name).strip()
     db = db_client["genai"]
     # Check if the video is already translated
     translated_videos_collection = db["translated_videos"]
@@ -413,7 +413,7 @@ async def change_language(
         {
             "course_name": course_name,
             "week": week,
-            "topic_name": topic_name,
+            "topic_name": topic_name2,
             "target_language": target_language,
         }
     )
@@ -439,7 +439,7 @@ async def change_language(
                 sub_topic = week_summary[str(week)]["undergrad"]
 
     video_url = video["video_url"]
-
+    topic_name=topic_name2
     video_file = f"videos/{topic_name}.mp4"
     audio_file = f"temp_audio/{topic_name}.mp3"
 
